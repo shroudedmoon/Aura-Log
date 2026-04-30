@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aura-Log</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0b0614">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <main id="main-content">
+            <!-- Entry View -->
+            <div id="view-entry" class="view active">
+                <header class="view-header">
+                    <h1>Diário de Sonhos</h1>
+                    <span id="save-status">Rascunho</span>
+                </header>
+                
+                <div class="title-selector" style="margin-bottom: 0.5rem;">
+                    <input type="text" id="dream-title" class="title-input" placeholder="Título do Sonho (opcional)">
+                </div>
+
+                <div class="date-selector" style="margin-bottom: 0.5rem;">
+                    <input type="datetime-local" id="dream-date" class="date-input">
+                </div>
+
+                <div class="entry-area">
+                    <textarea id="dream-input" placeholder="O que você sonhou? Comece a digitar..." autofocus></textarea>
+                </div>
+                <div class="quick-tags" id="quick-tags-container">
+                    <button class="tag-btn" data-tag="Lúcido">✨ Lúcido</button>
+                    <button class="tag-btn" data-tag="Pesadelo">🌑 Pesadelo</button>
+                    <button class="tag-btn" data-tag="Recorrente">🔄 Recorrente</button>
+                </div>
+                <div class="action-row">
+                    <button id="save-dream-btn" class="primary-btn" style="width: 100%;">Salvar</button>
+                </div>
+            </div>
+
+            <!-- Incubation View -->
+            <div id="view-incubation" class="view hidden">
+                <header class="view-header">
+                    <h1>Incubação</h1>
+                </header>
+                <div class="incubation-panel">
+                    <div class="setting-group" style="margin-bottom: 1rem;">
+                        <label for="incubation-theme">Tema do Sonho</label>
+                        <p class="help-text">O que você deseja sonhar esta noite?</p>
+                        <input type="text" id="incubation-theme" placeholder="Ex: Voar sobre um oceano cyan...">
+                        <button id="incubate-btn" class="primary-btn" style="width:100%; margin-top:0.5rem;">Incubar Sonho</button>
+                        <p id="incubation-status" class="status-msg"></p>
+                    </div>
+
+                    <div id="incubation-result" class="hidden">
+                        <div class="dream-image-wrapper">
+                            <img id="dream-image" src="" alt="Imagem do Sonho Incubado">
+                            <div class="image-overlay">Visão do Portal</div>
+                        </div>
+                        <div class="insight-box" style="margin-top: 1rem;">
+                            <div class="insight-header">Semente Sensorial</div>
+                            <div id="sensory-seed" class="markdown-body"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis View -->
+            <div id="view-analysis" class="view hidden">
+                <header class="view-header">
+                    <h1>Rimas de Significado</h1>
+                </header>
+                
+                <div class="filters-panel" style="background: var(--surface-light); padding: 1rem; border-radius: 12px; margin-bottom: 1rem;">
+                    <h3 style="font-size: 1rem; margin-bottom: 0.8rem; color: var(--cyan);">Filtros de Análise</h3>
+                    <input type="text" id="filter-text" class="date-input" placeholder="Buscar texto ou título..." style="margin-bottom: 0.5rem;">
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <input type="date" id="filter-date-start" class="date-input" style="flex: 1;" placeholder="Data Inicial">
+                        <input type="date" id="filter-date-end" class="date-input" style="flex: 1;" placeholder="Data Final">
+                    </div>
+                    <div class="quick-tags" style="justify-content: flex-start;">
+                        <button class="tag-btn filter-tag" data-tag="Lúcido">✨ Lúcido</button>
+                        <button class="tag-btn filter-tag" data-tag="Pesadelo">🌑 Pesadelo</button>
+                        <button class="tag-btn filter-tag" data-tag="Recorrente">🔄 Recorrente</button>
+                    </div>
+                </div>
+
+                <div class="analysis-controls" style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                    <button id="refresh-analysis" class="secondary-btn" style="flex:1;">Atualizar</button>
+                    <button id="get-insight-btn" class="primary-btn" style="flex:2;">Sincromisticismo (IA)</button>
+                </div>
+
+                <div id="insight-container" class="insight-box hidden" style="margin-top: 1rem; margin-bottom: 1rem;">
+                    <div class="insight-header">Insight Sincromístico</div>
+                    <div id="insight-content" class="markdown-body"></div>
+                </div>
+
+                <div id="rhyme-graph" class="rhyme-container"></div>
+                <div id="dreams-list" class="dreams-list"></div>
+            </div>
+
+            <!-- Sync View -->
+            <div id="view-sync" class="view hidden">
+                <header class="view-header">
+                    <h1>Sincronizar (P2P)</h1>
+                </header>
+                <div class="sync-panel">
+                    <div class="status-box">
+                        <p>Meu ID de Dispositivo: <br><strong id="my-peer-id" class="peer-id-display">Gerando...</strong></p>
+                    </div>
+                    <div class="connect-box">
+                        <label for="remote-peer-id">Conectar a Dispositivo Remoto</label>
+                        <input type="text" id="remote-peer-id" placeholder="Digite o ID aqui...">
+                        <button id="connect-btn" class="primary-btn">Conectar e Sincronizar</button>
+                    </div>
+                    <div id="sync-log" class="sync-log"></div>
+                </div>
+            </div>
+
+            <!-- Settings View -->
+            <div id="view-settings" class="view hidden">
+                <header class="view-header">
+                    <h1>Configurações</h1>
+                </header>
+                <div class="settings-panel">
+                    <div class="setting-group">
+                        <label for="gemini-api-key">Chave da API Gemini</label>
+                        <p class="help-text">Para gerar insights dialéticos, você precisa de uma chave API do Gemini. <a href="https://aistudio.google.com/app/apikey" target="_blank">Obtenha grátis aqui</a>.</p>
+                        <input type="password" id="gemini-api-key" placeholder="AIzaSy...">
+                        <button id="save-settings-btn" class="primary-btn">Salvar Configurações</button>
+                        <p id="settings-status" class="status-msg"></p>
+                    </div>
+                    
+                    <div class="setting-group" style="margin-top: 1rem;">
+                        <label>Checagens de Realidade (Alertas)</label>
+                        <p class="help-text">Receba perguntas poéticas locais durante o dia para ancorar sua lucidez.</p>
+                        <div style="display:flex; align-items:center; gap: 1rem; margin-top: 0.5rem;">
+                            <label class="switch">
+                              <input type="checkbox" id="rc-toggle">
+                              <span class="slider round"></span>
+                            </label>
+                            <span id="rc-status-text" style="font-size:0.9rem; color:var(--text-secondary);">Desativado</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <nav class="bottom-nav">
+            <button class="nav-btn active" data-target="view-entry">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                <span>Diário</span>
+            </button>
+            <button class="nav-btn" data-target="view-incubation">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.8 6.2L21 12l-6.2 2.8L12 21l-2.8-6.2L3 12l6.2-2.8L12 3z"></path></svg>
+                <span>Incubar</span>
+            </button>
+            <button class="nav-btn" data-target="view-analysis">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="10" r="7"></circle>
+                    <path d="M12 3v14M5 10h14M7 5l10 10M17 5L7 15"></path>
+                    <path d="M8 16.5v2.5c0 1.5-1 3-2.5 3 0-1.5 1-3 2.5-3z"></path>
+                    <path d="M16 16.5v2.5c0 1.5 1 3 2.5 3 0-1.5-1-3-2.5-3z"></path>
+                    <path d="M12 17v3c0 2-1.5 4-3 4 0-2 1.5-4 3-4z"></path>
+                </svg>
+                <span>Rimas</span>
+            </button>
+            <button class="nav-btn" data-target="view-sync">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.13 15.57a9 9 0 0 0 16.03 2.18M2.5 22v-6h6M21.87 8.43a9 9 0 0 0-16.03-2.18"/></svg>
+                <span>Sync</span>
+            </button>
+            <button class="nav-btn" data-target="view-settings">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                <span>Ajustes</span>
+            </button>
+        </nav>
+    </div>
+    <script src="js/db.js"></script>
+    <script src="js/gemini.js"></script>
+    <script src="js/analysis.js"></script>
+    <script src="js/sync.js"></script>
+    <script src="js/incubation.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(err => console.log('SW ref failed', err));
+        }
+    </script>
+</body>
+</html>
