@@ -411,6 +411,20 @@ input[type="text"]:focus, input[type="password"]:focus {
     color: var(--text-secondary);
 }
 
+.entry-suggestions-panel {
+    background: var(--surface);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    padding: 1rem;
+    margin-top: 1rem;
+}
+.entry-suggestions-panel h3 {
+    font-family: var(--font-heading);
+    font-size: 0.9rem;
+    color: var(--cyan);
+    margin-bottom: 0.3rem;
+}
+
 /* Markdown body inside insight */
 .markdown-body p { margin-bottom: 0.5em; font-size: 0.95rem; line-height: 1.5; color: var(--text-primary); }
 .markdown-body ul { margin-left: 1.5em; margin-bottom: 0.5em; font-size: 0.95rem; }
@@ -557,26 +571,23 @@ input:checked + .slider:before {
     /* Entry View Grid */
     #view-entry.active {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 2rem;
+        grid-template-columns: 1fr 350px;
+        grid-template-areas: 
+            "header suggestions"
+            "title suggestions"
+            "date suggestions"
+            "area suggestions"
+            "area insight"
+            "save insight";
+        gap: 1.5rem;
     }
-    #view-entry .view-header,
-    #view-entry .date-selector {
-        grid-column: 1 / -1;
-    }
-    #view-entry .entry-area {
-        grid-column: 1 / 2;
-        grid-row: 3 / 6;
-    }
-    #view-entry .quick-tags,
-    #view-entry .action-row {
-        grid-column: 1 / 2;
-    }
-    #view-entry .insight-box {
-        grid-column: 2 / 3;
-        grid-row: 3 / 6;
-        margin-top: 0;
-    }
+    #view-entry .view-header { grid-area: header; }
+    #view-entry .title-selector { grid-area: title; }
+    #view-entry .date-selector { grid-area: date; }
+    #view-entry .entry-area { grid-area: area; height: 100%; min-height: 400px; }
+    #view-entry .action-row { grid-area: save; }
+    #view-entry .entry-suggestions-panel { grid-area: suggestions; margin: 0; align-self: start; }
+    #view-entry .insight-box { grid-area: insight; margin: 0; }
 
     /* Analysis View Grid */
     #view-analysis.active {

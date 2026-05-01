@@ -32,17 +32,14 @@
                 <div class="entry-area">
                     <textarea id="dream-input" placeholder="O que você sonhou? Comece a digitar..." autofocus></textarea>
                 </div>
-                <div class="quick-tags" id="quick-tags-container">
-                    <button class="tag-btn" data-tag="Lúcido">✨ Lúcido</button>
-                    <button class="tag-btn" data-tag="Pesadelo">🌑 Pesadelo</button>
-                    <button class="tag-btn" data-tag="Recorrente">🔄 Recorrente</button>
-                </div>
-                <div class="tag-input-wrapper" style="margin-bottom: 1rem; display: flex; gap: 0.5rem;">
-                    <input type="text" id="custom-tag-input" placeholder="Nova tag..." style="margin-bottom: 0; flex: 1;">
-                    <button id="add-tag-btn" class="secondary-btn" style="padding: 0.5rem 1rem; flex: none;">+</button>
-                </div>
                 <div class="action-row">
                     <button id="save-dream-btn" class="primary-btn" style="width: 100%;">Salvar</button>
+                </div>
+                
+                <div id="entry-suggestions" class="entry-suggestions-panel">
+                    <h3>Sugestões de Tags</h3>
+                    <p class="help-text">Clique para adicionar ao seu relato:</p>
+                    <div id="realtime-tags" class="tag-cloud"></div>
                 </div>
             </div>
 
@@ -107,11 +104,6 @@
                         <h3>Sincronicidades de Termos</h3>
                         <p class="help-text" style="margin-bottom:0.5rem;">Palavras recorrentes encontradas nos seus relatos:</p>
                         <div id="recurring-terms" class="tag-cloud"></div>
-                    </div>
-                    <div class="patterns-section" style="margin-top: 1rem;">
-                        <h3>Sugestões de Tags</h3>
-                        <p class="help-text" style="margin-bottom:0.5rem;">Termos que podem virar novas categorias:</p>
-                        <div id="tag-suggestions" class="tag-cloud"></div>
                     </div>
                 </div>
                 <div id="dreams-list" class="dreams-list"></div>

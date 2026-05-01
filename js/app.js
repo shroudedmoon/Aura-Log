@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const dreamInput = document.getElementById('dream-input');
     const dreamTitle = document.getElementById('dream-title');
     const saveStatus = document.getElementById('save-status');
-    const tagBtns = document.querySelectorAll('#view-entry .tag-btn');
     const saveDreamBtn = document.getElementById('save-dream-btn');
     const dateInput = document.getElementById('dream-date');
     
@@ -19,6 +18,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         return (new Date(date.getTime() - tzOffset)).toISOString().slice(0, 16);
     }
     dateInput.value = toLocalISOString(new Date());
+
+    // Initial render
+    renderRealtimeSuggestions();
 
     // Initialize Settings View
     const geminiKeyInput = document.getElementById('gemini-api-key');
@@ -49,6 +51,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (target === 'view-analysis') {
                 if(window.refreshAnalysis) window.refreshAnalysis();
+            }
+            if (target === 'view-entry') {
+                renderRealtimeSuggestions();
             }
         });
     });
@@ -97,35 +102,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // Custom Tags Logic
-    const customTagInput = document.getElementById('custom-tag-input');
-    const addTagBtn = document.getElementById('add-tag-btn');
-
-    const addCustomTag = () => {
-        const tag = customTagInput.value.trim().replace(/\s+/g, '_');
-        if (tag) {
-            dreamInput.value += ` #${tag} `;
-            customTagInput.value = '';
-            dreamInput.focus();
-            dreamInput.dispatchEvent(new Event('input'));
-        }
-    };
-
-    addTagBtn.addEventListener('click', addCustomTag);
-    customTagInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') addCustomTag();
-    });
-
-    // Quick Tags
-    tagBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const tag = btn.getAttribute('data-tag');
-            dreamInput.value += ` #${tag} `;
-            dreamInput.focus();
-            dreamInput.dispatchEvent(new Event('input'));
-        });
-    });
-
     // Save Entry
     saveDreamBtn.addEventListener('click', async () => {
         const text = dreamInput.value.trim();
@@ -163,7 +139,65 @@ document.addEventListener('DOMContentLoaded', async () => {
         setTimeout(() => saveStatus.textContent = "Rascunho", 3000);
         
         document.getElementById('insight-container').classList.add('hidden');
+        renderRealtimeSuggestions(); // Update suggestions after save
     });
+
+    async function renderRealtimeSuggestions() {
+        const container = document.getElementById('realtime-tags');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        // Add the three default tags first
+        const defaults = ['Lúcido', 'Pesadelo', 'Recorrente'];
+        defaults.forEach(tag => {
+            const badge = document.createElement('div');
+            badge.className = 'tag-badge active';
+            badge.textContent = tag;
+            badge.onclick = () => {
+                dreamInput.value += ` #${tag} `;
+                dreamInput.focus();
+                dreamInput.dispatchEvent(new Event('input'));
+            };
+            container.appendChild(badge);
+        });
+
+        // Get recurring terms from all dreams to suggest
+        const dreams = await window.db.getAllDreams();
+        const savedDreams = dreams.filter(d => !d.isDraft);
+        
+        const stopWords = new Set(['o','a','e','um','uma','de','do','da','em','no','na','que','eu','foi','com','mas','não','para','por','se','os','as','dos','das','nos','nas','meu','minha','meus','minhas','estava','estou','tinha','tenho','quando','algo','ainda','muito','mais','também','sobre','pelo','pela','isso','esta','este','esse','essa','tudo','nada','onde','como','cada','então','depois','antes','agora','sempre','nunca','num','numa','pelos','pelas','você','ele','ela','nós','eles','elas']);
+        
+        const freq = {};
+        const tagsInUse = new Set();
+        savedDreams.forEach(d => {
+            if(d.tags) d.tags.forEach(t => tagsInUse.add(t.toLowerCase()));
+            
+            const words = d.text.toLowerCase().replace(/[^\w\sà-ú]/g, ' ').split(/\s+/).filter(w => w.length > 3 && !stopWords.has(w));
+            new Set(words).forEach(w => freq[w] = (freq[w] || 0) + 1);
+        });
+
+        // Combine existing tags and recurring words
+        const suggestions = Object.entries(freq)
+            .filter(([word, count]) => count > 1)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 20);
+
+        suggestions.forEach(([word, count]) => {
+            if (defaults.some(d => d.toLowerCase() === word)) return;
+            
+            const badge = document.createElement('div');
+            const isTag = tagsInUse.has(word);
+            badge.className = `tag-badge ${isTag ? 'active' : 'suggestion'}`;
+            badge.innerHTML = `${word} <span class="count">${count}</span>`;
+            badge.onclick = () => {
+                dreamInput.value += ` #${word} `;
+                dreamInput.focus();
+                dreamInput.dispatchEvent(new Event('input'));
+            };
+            container.appendChild(badge);
+        });
+    }
 
     function getTagsFromText(text) {
         const regex = /#([\wÀ-ÿ]+)/g;
