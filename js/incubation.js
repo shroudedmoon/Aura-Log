@@ -120,22 +120,21 @@ Responda APENAS com o JSON. Nenhuma palavra a mais, sem formatação markdown en
         dreamImage.alt = "Gerando Imagem...";
         resultDiv.classList.remove('hidden');
 
-        const promptParam = encodeURIComponent((data.imagePrompt || "surreal dreamlike scene") + " masterpiece, highly detailed, dreamy, surreal, beautiful lighting");
+        const shortPrompt = (data.imagePrompt || "surreal dreamlike scene").substring(0, 250);
+        const promptParam = encodeURIComponent(shortPrompt + ", masterpiece, highly detailed, dreamy, surreal, beautiful lighting");
         const imgUrl = `https://image.pollinations.ai/prompt/${promptParam}?width=800&height=400&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
         
-        try {
-            const response = await fetch(imgUrl);
-            if (!response.ok) throw new Error("API retornou " + response.status);
-            const blob = await response.blob();
-            dreamImage.src = URL.createObjectURL(blob);
+        dreamImage.onload = () => {
             statusMsg.textContent = "Incubação Pronta!";
             setTimeout(() => statusMsg.textContent = "", 3000);
             
             const oldBox = document.getElementById('debug-url-box');
             if(oldBox) oldBox.remove();
-        } catch (error) {
-            console.error(error);
-            dreamImage.alt = "Falha ao gerar imagem: " + error.message;
+        };
+
+        dreamImage.onerror = (error) => {
+            console.error("Erro ao carregar a imagem (onerror)", error);
+            dreamImage.alt = "Falha ao gerar imagem. A API pode estar congestionada.";
             statusMsg.textContent = "Falha ao carregar a Imagem.";
             statusMsg.style.color = "var(--magenta)";
             
@@ -149,8 +148,10 @@ Responda APENAS com o JSON. Nenhuma palavra a mais, sem formatação markdown en
                 debugBox.style.color = 'var(--text-muted)';
                 resultDiv.appendChild(debugBox);
             }
-            debugBox.innerHTML = `<strong>Erro na Imagem:</strong> ${error.message}<br>URL: <a href="${imgUrl}" target="_blank" style="color:var(--cyan)">Testar Manualmente</a>`;
-        }
+            debugBox.innerHTML = `<strong>Erro na Imagem.</strong> O navegador bloqueou ou a API falhou.<br>URL: <a href="${imgUrl}" target="_blank" style="color:var(--cyan)">Clique aqui para abrir a imagem no navegador</a>`;
+        };
+
+        dreamImage.src = imgUrl;
     }
 
     rcToggleBtn.addEventListener('click', () => {
