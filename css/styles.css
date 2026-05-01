@@ -536,39 +536,133 @@ input:checked + .slider:before {
   border-radius: 50%;
 }
 
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(18, 10, 30, 0.95);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-around;
+    padding: 0.6rem 0.2rem;
+    padding-bottom: env(safe-area-inset-bottom);
+    z-index: 1000;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bottom-nav.nav-hidden {
+    transform: translateY(100%);
+}
+
+.nav-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.7rem;
+    transition: all 0.3s;
+    cursor: pointer;
+    flex: 1;
+}
+
+.nav-btn.active {
+    color: var(--primary);
+}
+
+.nav-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Settings Refinement */
+.settings-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.setting-group {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 1.2rem;
+    border-radius: 16px;
+}
+
+.setting-group label {
+    display: block;
+    font-family: var(--font-heading);
+    color: var(--cyan);
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Sync Log inside settings */
+.sync-log {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 0.5rem;
+    font-family: monospace;
+    font-size: 0.75rem;
+    max-height: 150px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+}
+
+/* Rhyme Graph Container */
+.rhyme-container {
+    background: var(--surface);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+    box-shadow: inset 0 0 40px rgba(0,0,0,0.5);
+}
+
+.constellation-node {
+    cursor: pointer;
+    transition: filter 0.3s;
+}
+
+.constellation-node:hover {
+    filter: drop-shadow(0 0 5px var(--primary));
+}
+
+.constellation-link {
+    stroke: var(--primary);
+    stroke-opacity: 0.2;
+    stroke-width: 1;
+}
+
 /* -----------------------------
    Desktop Optimization Layout
 --------------------------------*/
-@media (min-width: 768px) {
+@media (min-width: 769px) {
     .app-container {
-        max-width: 100%;
-        width: 100%;
-        flex-direction: row;
+        padding-bottom: 0;
+        padding-left: 100px;
     }
-
+    
     .bottom-nav {
-        position: relative;
-        width: 120px;
-        height: 100%;
+        left: 0;
+        top: 0;
+        width: 100px;
+        height: 100vh;
         flex-direction: column;
-        justify-content: flex-start;
-        padding-top: 2rem;
+        justify-content: center;
         gap: 2rem;
         border-top: none;
         border-right: 1px solid var(--border);
-        padding-bottom: 0;
     }
     
-    .nav-btn {
-        flex: none;
-        height: auto;
+    .bottom-nav.nav-hidden {
+        transform: none; /* Never hide on desktop */
     }
 
-    #main-content {
-        padding-bottom: 2rem;
-    }
-
-    /* Entry View Grid */
     #view-entry.active {
         display: grid;
         grid-template-columns: 1fr 350px;
@@ -588,6 +682,14 @@ input:checked + .slider:before {
     #view-entry .action-row { grid-area: save; }
     #view-entry .entry-suggestions-panel { grid-area: suggestions; margin: 0; align-self: start; }
     #view-entry .insight-box { grid-area: insight; margin: 0; }
+
+    /* History and Analysis grids */
+    #view-history.active,
+    #view-analysis.active {
+        display: block;
+        max-width: 900px;
+        margin: 0 auto;
+    }
 
     /* Analysis View Grid */
     #view-analysis.active {

@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById(target).classList.remove('hidden');
             document.getElementById(target).classList.add('active');
 
-            if (target === 'view-analysis') {
+            if (target === 'view-analysis' || target === 'view-history') {
                 if(window.refreshAnalysis) window.refreshAnalysis();
             }
             if (target === 'view-entry') {
@@ -57,6 +57,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     });
+
+    // Mobile: Hide Nav on Scroll
+    let lastScrollY = window.scrollY;
+    const bottomNav = document.querySelector('.bottom-nav');
+    window.addEventListener('scroll', () => {
+        if (window.innerWidth > 768) return; // Only for mobile
+        
+        if (window.scrollY > lastScrollY && window.scrollY > 50) {
+            bottomNav.classList.add('nav-hidden');
+        } else {
+            bottomNav.classList.remove('nav-hidden');
+        }
+        lastScrollY = window.scrollY;
+    }, { passive: true });
 
     // Edit Dream Hook
     window.editDream = async (id) => {
@@ -69,6 +83,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             saveStatus.textContent = "Editando...";
             // Switch view
             document.querySelector('.nav-btn[data-target="view-entry"]').click();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     };
 
@@ -138,7 +153,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         saveStatus.textContent = "Salvo no Diário!";
         setTimeout(() => saveStatus.textContent = "Rascunho", 3000);
         
-        document.getElementById('insight-container').classList.add('hidden');
+        const insightContainer = document.getElementById('insight-container');
+        if (insightContainer) insightContainer.classList.add('hidden');
         renderRealtimeSuggestions(); // Update suggestions after save
     });
 
@@ -150,7 +166,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // Add the three default tags first
         const defaults = ['Lúcido', 'Pesadelo', 'Recorrente'];
-        defaults.forEach(tag => {
+        const pinnedTags = await window.db.getSetting('pinnedTags') || [];
+        
+        const allSuggestions = Array.from(new Set([...defaults, ...pinnedTags]));
+
+        allSuggestions.forEach(tag => {
             const badge = document.createElement('div');
             badge.className = 'tag-badge active';
             badge.textContent = tag;
@@ -166,7 +186,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         const dreams = await window.db.getAllDreams();
         const savedDreams = dreams.filter(d => !d.isDraft);
         
-        const stopWords = new Set(['o','a','e','um','uma','de','do','da','em','no','na','que','eu','foi','com','mas','não','para','por','se','os','as','dos','das','nos','nas','meu','minha','meus','minhas','estava','estou','tinha','tenho','quando','algo','ainda','muito','mais','também','sobre','pelo','pela','isso','esta','este','esse','essa','tudo','nada','onde','como','cada','então','depois','antes','agora','sempre','nunca','num','numa','pelos','pelas','você','ele','ela','nós','eles','elas']);
+        const stopWords = new Set([
+            'o','a','e','um','uma','de','do','da','em','no','na','que','eu','foi','com','mas','não','para','por','se','os','as','dos','das','nos','nas','meu','minha','meus','minhas',
+            'estava','estou','tinha','tenho','quando','algo','ainda','muito','mais','também','sobre','pelo','pela','isso','esta','este','esse','essa','tudo','nada','onde','como','cada',
+            'então','depois','antes','agora','sempre','nunca','num','numa','pelos','pelas','você','ele','ela','nós','eles','elas',
+            'pode','pelo','pela','pelas','pelos','estão','esteve','estavam','ter','tinha','tinham','fazer','fui','ser','era','eram','quem','qual','quais','algum','alguma','alguns','algumas'
+        ]);
         
         const freq = {};
         const tagsInUse = new Set();
@@ -184,7 +209,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             .slice(0, 20);
 
         suggestions.forEach(([word, count]) => {
-            if (defaults.some(d => d.toLowerCase() === word)) return;
+            if (allSuggestions.some(d => d.toLowerCase() === word)) return;
             
             const badge = document.createElement('div');
             const isTag = tagsInUse.has(word);
@@ -198,6 +223,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             container.appendChild(badge);
         });
     }
+
+    window.togglePinTag = async (tag) => {
+        let pinned = await window.db.getSetting('pinnedTags') || [];
+        if (pinned.includes(tag)) {
+            pinned = pinned.filter(t => t !== tag);
+        } else {
+            pinned.push(tag);
+        }
+        await window.db.saveSetting('pinnedTags', pinned);
+        renderRealtimeSuggestions();
+        if (window.refreshAnalysis) window.refreshAnalysis();
+    };
 
     function getTagsFromText(text) {
         const regex = /#([\wÀ-ÿ]+)/g;

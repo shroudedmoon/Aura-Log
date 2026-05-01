@@ -241,27 +241,51 @@ Responda APENAS com o JSON. Nenhuma palavra a mais, sem formatação markdown en
         }
     });
 
+    const predefinedRCs = [
+        "Você está sonhando? Olhe para suas mãos.",
+        "Tente atravessar a palma da mão com o dedo.",
+        "Tudo ao seu redor parece real? Olhe para um relógio duas vezes.",
+        "As luzes funcionam normalmente? Tente acender um interruptor.",
+        "Você consegue ler este texto claramente? No sonho, as letras mudam.",
+        "Como você chegou aqui? Tente lembrar os passos anteriores.",
+        "Tape o nariz e tente respirar. Se conseguir, você está sonhando.",
+        "Dê um pequeno pulo. A gravidade está normal?",
+        "Olhe-se em um espelho. Seu reflexo está nítido?",
+        "Escute os sons ao redor. Alguma coisa parece fora do lugar?"
+    ];
+
     async function checkRealityChecks() {
         const isActive = await window.db.getSetting('rcActive');
         if (!isActive) return;
 
-        const incubation = await window.db.getSetting('activeIncubation');
-        if (!incubation || !incubation.questions || incubation.questions.length === 0) return;
-
         let lastRC = await window.db.getSetting('lastRC');
-        if (!lastRC) lastRC = Date.now();
+        if (!lastRC) {
+            lastRC = Date.now();
+            await window.db.saveSetting('lastRC', lastRC);
+            return;
+        }
 
         const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
         
         if (Date.now() - lastRC >= TWO_HOURS_MS) {
-            // Trigger
-            const q = incubation.questions[Math.floor(Math.random() * incubation.questions.length)];
+            const incubation = await window.db.getSetting('activeIncubation');
+            let q;
+            
+            if (incubation && incubation.questions && incubation.questions.length > 0) {
+                // Mix predefined with incubation questions
+                const pool = [...predefinedRCs, ...incubation.questions];
+                q = pool[Math.floor(Math.random() * pool.length)];
+            } else {
+                q = predefinedRCs[Math.floor(Math.random() * predefinedRCs.length)];
+            }
             
             if (Notification.permission === 'granted') {
                 const title = "Checagem de Realidade";
                 const options = {
                     body: q,
-                    icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/1x1.png/120px-1x1.png"
+                    icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/1x1.png/120px-1x1.png",
+                    silent: false,
+                    vibrate: [200, 100, 200]
                 };
 
                 if ('serviceWorker' in navigator) {
