@@ -515,7 +515,8 @@ input:checked + .slider:before {
 --------------------------------*/
 @media (min-width: 768px) {
     .app-container {
-        max-width: 1000px;
+        max-width: 100%;
+        width: 100%;
         flex-direction: row;
     }
 

@@ -127,13 +127,13 @@ Responda APENAS com o JSON. Nenhuma palavra a mais, sem formatação markdown en
             statusMsg.textContent = "Falha ao carregar a Imagem.";
             statusMsg.style.color = "var(--magenta)";
         };
-        // Use modern /p/ endpoint and seed to bypass cache
-        dreamImage.src = `https://pollinations.ai/p/${encodedPrompt}?width=600&height=300&seed=${data.timestamp || Date.now()}`;
+        // Use modern direct API endpoint and seed to bypass cache
+        dreamImage.src = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=400&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
         
         resultDiv.classList.remove('hidden');
     }
 
-    rcToggle.addEventListener('change', async (e) => {
+    rcToggle.addEventListener('click', async (e) => {
         const isChecked = e.target.checked;
         if (isChecked) {
             if (!("Notification" in window)) {
@@ -155,9 +155,10 @@ Responda APENAS com o JSON. Nenhuma palavra a mais, sem formatação markdown en
                 await window.db.saveSetting('lastRC', Date.now());
                 new Notification("Aura-Log", { body: "Checagens de Realidade ativadas. Fique lúcido." });
             } else {
+                e.preventDefault(); // reverte o clique visual
                 rcToggle.checked = false;
                 rcStatusText.textContent = "Permissão negada";
-                alert("Permissão de notificação é necessária para as Checagens de Realidade.");
+                alert("As notificações foram bloqueadas. Você pode precisar permitir manualmente nas configurações (o ícone de cadeado na barra de endereços) do seu navegador.");
             }
         } else {
             rcStatusText.textContent = "Desativado";
