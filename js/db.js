@@ -3,10 +3,12 @@ class AuraDB {
         this.dbName = 'AuraLogDB';
         this.dbVersion = 1;
         this.db = null;
+        this.initPromise = null;
     }
 
     async init() {
-        return new Promise((resolve, reject) => {
+        if (this.initPromise) return this.initPromise;
+        this.initPromise = new Promise((resolve, reject) => {
             const request = indexedDB.open(this.dbName, this.dbVersion);
 
             request.onupgradeneeded = (event) => {
@@ -30,9 +32,11 @@ class AuraDB {
                 reject(event.target.error);
             };
         });
+        return this.initPromise;
     }
 
     async saveDream(dream) {
+        await this.init();
         return new Promise((resolve, reject) => {
             if (!dream.id) dream.id = Date.now().toString();
             if (!dream.date) dream.date = new Date().toISOString();
@@ -47,6 +51,7 @@ class AuraDB {
     }
 
     async getDream(id) {
+        await this.init();
         return new Promise((resolve, reject) => {
             const tx = this.db.transaction('dreams', 'readonly');
             const store = tx.objectStore('dreams');
@@ -58,6 +63,7 @@ class AuraDB {
     }
 
     async deleteDream(id) {
+        await this.init();
         return new Promise((resolve, reject) => {
             const tx = this.db.transaction('dreams', 'readwrite');
             const store = tx.objectStore('dreams');
@@ -69,6 +75,7 @@ class AuraDB {
     }
 
     async getAllDreams() {
+        await this.init();
         return new Promise((resolve, reject) => {
             const tx = this.db.transaction('dreams', 'readonly');
             const store = tx.objectStore('dreams');
@@ -85,6 +92,7 @@ class AuraDB {
     }
 
     async saveSetting(key, value) {
+        await this.init();
         return new Promise((resolve, reject) => {
             const tx = this.db.transaction('settings', 'readwrite');
             const store = tx.objectStore('settings');
@@ -96,6 +104,7 @@ class AuraDB {
     }
 
     async getSetting(key) {
+        await this.init();
         return new Promise((resolve, reject) => {
             const tx = this.db.transaction('settings', 'readonly');
             const store = tx.objectStore('settings');
