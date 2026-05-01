@@ -96,13 +96,11 @@ Responda APENAS com o JSON. Nenhuma palavra a mais, sem formatação markdown en
                 seed: parsed.seed,
                 imagePrompt: parsed.image_prompt,
                 questions: parsed.questions,
+                imageSeed: Math.floor(Math.random() * 100000),
                 timestamp: Date.now()
             };
 
             await window.db.saveSetting('activeIncubation', activeIncubation);
-            
-            await window.db.saveSetting('activeIncubation', activeIncubation);
-            
             await renderIncubation(activeIncubation);
             statusMsg.textContent = "Incubação pronta!";
             setTimeout(() => statusMsg.textContent = "", 3000);
@@ -137,7 +135,8 @@ Responda APENAS com o JSON. Nenhuma palavra a mais, sem formatação markdown en
 
             const shortPrompt = (data.imagePrompt || "surreal dreamlike scene").substring(0, 250);
             const promptParam = encodeURIComponent(shortPrompt + ", masterpiece, highly detailed, dreamy, surreal, beautiful lighting");
-            const primaryUrl = `https://image.pollinations.ai/prompt/${promptParam}?width=800&height=400&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
+            const seed = data.imageSeed || Math.floor(Math.random() * 100000);
+        const primaryUrl = `https://image.pollinations.ai/prompt/${promptParam}?width=800&height=400&nologo=true&seed=${seed}`;
             const fallbackUrl = `https://api.airforce/imagine?prompt=${promptParam}`;
             
             dreamImage.onload = () => {
