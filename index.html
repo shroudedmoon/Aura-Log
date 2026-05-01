@@ -95,25 +95,27 @@
                 <header class="view-header">
                     <h1>Rimas de Significado</h1>
                 </header>
-                
-                <div class="analysis-controls" style="margin-top: 0.5rem; display: flex; gap: 0.5rem; margin-bottom: 1rem;">
-                    <button id="get-insight-btn" class="primary-btn" style="flex:1;">Sincromisticismo (IA)</button>
+
+                <div class="analysis-main-content">
+                    <div id="rhyme-graph-container" class="rhyme-container" style="height: 450px;">
+                        <!-- The Interactive Mandala will be here -->
+                    </div>
+
+                    <div id="patterns-panel" class="patterns-panel">
+                        <div class="patterns-section">
+                            <h3>Sincronicidades de Termos</h3>
+                            <div id="recurring-terms" class="tag-cloud"></div>
+                        </div>
+                    </div>
                 </div>
 
-                <div id="insight-container" class="insight-box hidden" style="margin-bottom: 1.5rem;">
+                <div class="analysis-actions" style="margin-top: 1.5rem;">
+                    <button id="get-insight-btn" class="primary-btn" style="width: 100%;">Sincromisticismo (IA)</button>
+                </div>
+
+                <div id="insight-container" class="insight-box hidden" style="margin-top: 1.5rem;">
                     <div class="insight-header">Insight Sincromístico</div>
                     <div id="insight-content" class="markdown-body"></div>
-                </div>
-
-                <div id="rhyme-graph-container" class="rhyme-container" style="height: 400px; margin-bottom: 1.5rem;">
-                    <!-- The Interactive Mandala will be here -->
-                </div>
-
-                <div id="patterns-panel" class="patterns-panel">
-                    <div class="patterns-section">
-                        <h3>Sincronicidades de Termos</h3>
-                        <div id="recurring-terms" class="tag-cloud"></div>
-                    </div>
                 </div>
             </div>
 

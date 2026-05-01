@@ -117,7 +117,8 @@ document.addEventListener('DOMContentLoaded', () => {
             'o','a','e','um','uma','de','do','da','em','no','na','que','eu','foi','com','mas','não','para','por','se','os','as','dos','das','nos','nas','meu','minha','meus','minhas',
             'estava','estou','tinha','tenho','quando','algo','ainda','muito','mais','também','sobre','pelo','pela','isso','esta','este','esse','essa','tudo','nada','onde','como','cada',
             'então','depois','antes','agora','sempre','nunca','num','numa','pelos','pelas','você','ele','ela','nós','eles','elas',
-            'pode','pelo','pela','pelas','pelos','estão','esteve','estavam','ter','tinha','tinham','fazer','fui','ser','era','eram','quem','qual','quais','algum','alguma','alguns','algumas'
+            'pode','pelo','pela','pelas','pelos','estão','esteve','estavam','ter','tinha','tinham','fazer','fui','ser','era','eram','quem','qual','quais','algum','alguma','alguns','algumas',
+            'está','tendo','acabo','outras','outros','enquanto','disso','daqui','ali','lá','assim','bem','tão','apenas','só'
         ]);
         
         const wordFreq = {};
