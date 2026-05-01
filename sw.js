@@ -1,4 +1,4 @@
-const CACHE_NAME = 'auralog-v1';
+const CACHE_NAME = 'auralog-v2';
 const ASSETS = [
     './',
     './index.html',
@@ -7,6 +7,7 @@ const ASSETS = [
     './js/db.js',
     './js/gemini.js',
     './js/analysis.js',
+    './js/incubation.js',
     './js/sync.js',
     './manifest.json'
 ];
@@ -24,5 +25,17 @@ self.addEventListener('fetch', event => {
         caches.match(event.request).then(response => {
             return response || fetch(event.request);
         })
+    );
+});
+
+self.addEventListener('activate', event => {
+    event.waitUntil(
+        caches.keys().then(keys => Promise.all(
+            keys.map(key => {
+                if (key !== CACHE_NAME) {
+                    return caches.delete(key);
+                }
+            })
+        ))
     );
 });
