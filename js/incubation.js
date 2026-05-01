@@ -126,14 +126,22 @@ Responda APENAS com o JSON. Nenhuma palavra a mais, sem formatação markdown en
         dreamImage.onerror = () => {
             statusMsg.textContent = "Falha ao carregar a Imagem.";
             statusMsg.style.color = "var(--magenta)";
-        };
-        // Use modern direct API endpoint and seed to bypass cache
+        // Debug da URL:
+        const debugBox = document.getElementById('debug-url-box') || document.createElement('div');
+        debugBox.id = 'debug-url-box';
+        debugBox.style.fontSize = '0.7rem';
+        debugBox.style.wordBreak = 'break-all';
+        debugBox.style.marginTop = '1rem';
+        debugBox.style.color = 'var(--text-muted)';
+        debugBox.textContent = `URL da Imagem: https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=400&nologo=true`;
+        resultDiv.appendChild(debugBox);
+
         dreamImage.src = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=400&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
         
         resultDiv.classList.remove('hidden');
     }
 
-    rcToggle.addEventListener('click', async (e) => {
+    rcToggle.addEventListener('click', (e) => {
         const isChecked = e.target.checked;
         if (isChecked) {
             if (!("Notification" in window)) {
@@ -142,27 +150,33 @@ Responda APENAS com o JSON. Nenhuma palavra a mais, sem formatação markdown en
                 return;
             }
             if (window.isSecureContext === false) {
-                alert("Bloqueado: Notificações exigem conexão segura (HTTPS) ou 'localhost'. Como você deve estar acessando via IP local no celular (HTTP), o navegador bloqueou. Tente usar o GitHub Pages para testar no celular.");
+                alert("Bloqueado: Notificações exigem conexão segura (HTTPS) ou 'localhost'. Tente usar o GitHub Pages para testar no celular.");
                 rcToggle.checked = false;
                 return;
             }
 
-            const perm = await Notification.requestPermission();
-            if (perm === 'granted') {
-                rcStatusText.textContent = "Ativado (a cada 2h)";
-                await window.db.saveSetting('rcActive', true);
-                // Reset timer
-                await window.db.saveSetting('lastRC', Date.now());
-                new Notification("Aura-Log", { body: "Checagens de Realidade ativadas. Fique lúcido." });
+            const handlePermission = async (perm) => {
+                if (perm === 'granted') {
+                    rcStatusText.textContent = "Ativado (a cada 2h)";
+                    await window.db.saveSetting('rcActive', true);
+                    await window.db.saveSetting('lastRC', Date.now());
+                    new Notification("Aura-Log", { body: "Checagens de Realidade ativadas. Fique lúcido." });
+                } else {
+                    rcToggle.checked = false;
+                    rcStatusText.textContent = "Permissão negada";
+                    alert("As notificações foram bloqueadas. Você pode precisar permitir manualmente nas configurações (o ícone de cadeado na barra de endereços) do seu navegador.");
+                }
+            };
+
+            const permPromise = Notification.requestPermission();
+            if (permPromise) {
+                permPromise.then(handlePermission);
             } else {
-                e.preventDefault(); // reverte o clique visual
-                rcToggle.checked = false;
-                rcStatusText.textContent = "Permissão negada";
-                alert("As notificações foram bloqueadas. Você pode precisar permitir manualmente nas configurações (o ícone de cadeado na barra de endereços) do seu navegador.");
+                Notification.requestPermission(handlePermission);
             }
         } else {
             rcStatusText.textContent = "Desativado";
-            await window.db.saveSetting('rcActive', false);
+            window.db.saveSetting('rcActive', false);
         }
     });
 
