@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.currentDreamsList = savedDreams;
         
         renderList(savedDreams);
-        renderGraph(savedDreams);
+        renderPatterns(savedDreams);
     };
 
     filterInput.addEventListener('input', () => {
@@ -110,86 +110,62 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function renderGraph(dreams) {
-        graphContainer.innerHTML = '';
-        if (dreams.length < 2) {
-            graphContainer.innerHTML = '<span style="color:var(--text-muted); font-size:0.8rem">Sonhos insuficientes para análise.</span>';
-            return;
-        }
+    function renderPatterns(dreams) {
+        const termsContainer = document.getElementById('recurring-terms');
+        const suggestionsContainer = document.getElementById('tag-suggestions');
+        
+        termsContainer.innerHTML = '';
+        suggestionsContainer.innerHTML = '';
 
-        // Portuguese stop words
-        const stopWords = new Set(['o','a','e','um','uma','de','do','da','em','no','na','que','eu','foi','com','mas','não','para','sonho','sonhei','por','se','os','as','dos','das','nos','nas','meu','minha','meus','minhas']);
+        if (dreams.length < 1) return;
 
-        // Extract words per dream
-        const dreamWords = dreams.map(d => {
-            const words = d.text.toLowerCase().replace(/[^\w\sà-ú]/g, '').split(/\s+/);
-            return new Set(words.filter(w => w.length > 3 && !stopWords.has(w)));
+        const stopWords = new Set(['o','a','e','um','uma','de','do','da','em','no','na','que','eu','foi','com','mas','não','para','sonho','sonhei','por','se','os','as','dos','das','nos','nas','meu','minha','meus','minhas','estava','estou','tinha','tenho']);
+        
+        const wordFreq = {};
+        const wordInDreams = {}; // word -> Set of dream IDs
+        const existingTags = new Set();
+
+        dreams.forEach((dream, idx) => {
+            const words = dream.text.toLowerCase()
+                .replace(/[^\w\sà-ú]/g, ' ')
+                .split(/\s+/)
+                .filter(w => w.length > 3 && !stopWords.has(w));
+            
+            if (dream.tags) dream.tags.forEach(t => existingTags.add(t.toLowerCase()));
+
+            const uniqueWords = new Set(words);
+            uniqueWords.forEach(word => {
+                wordFreq[word] = (wordFreq[word] || 0) + 1;
+                if (!wordInDreams[word]) wordInDreams[word] = new Set();
+                wordInDreams[word].add(idx);
+            });
         });
 
-        // Find rhymes (shared words)
-        const nodes = [];
-        const edges = [];
+        // Filter words that appear in more than 1 dream
+        const recurring = Object.entries(wordFreq)
+            .filter(([word, count]) => count > 1)
+            .sort((a, b) => b[1] - a[1]);
 
-        dreams.forEach((d, i) => {
-            nodes.push({ id: i, label: new Date(d.date).toLocaleDateString('pt-BR', {month:'short', day:'numeric'}), text: d.text });
-            for (let j = i + 1; j < dreams.length; j++) {
-                const intersection = [...dreamWords[i]].filter(x => dreamWords[j].has(x));
-                if (intersection.length > 0) {
-                    edges.push({ source: i, target: j, shared: intersection });
-                }
+        recurring.forEach(([word, count]) => {
+            const isExistingTag = existingTags.has(word);
+            const badge = document.createElement('div');
+            badge.className = `tag-badge ${isExistingTag ? 'active' : ''}`;
+            badge.innerHTML = `${word} <span class="count">${count}</span>`;
+            
+            badge.onclick = () => {
+                filterInput.value = word;
+                window.refreshAnalysis();
+            };
+
+            if (isExistingTag) {
+                termsContainer.appendChild(badge);
+            } else {
+                badge.classList.add('suggestion');
+                suggestionsContainer.appendChild(badge);
             }
         });
 
-        // Simple force-directed / random layout
-        const width = graphContainer.clientWidth || 300;
-        const height = graphContainer.clientHeight || 250;
-        
-        const nodeElements = [];
-
-        // Distribute nodes in a circle
-        const radius = Math.min(width, height) / 3;
-        const cx = width / 2;
-        const cy = height / 2;
-
-        nodes.forEach((node, i) => {
-            const angle = (i / nodes.length) * 2 * Math.PI;
-            const x = cx + radius * Math.cos(angle);
-            const y = cy + radius * Math.sin(angle);
-            node.x = x;
-            node.y = y;
-
-            const el = document.createElement('div');
-            el.className = 'rhyme-node';
-            el.style.left = `${x - 25}px`;
-            el.style.top = `${y - 25}px`;
-            el.style.width = '50px';
-            el.style.height = '50px';
-            el.textContent = node.label;
-            el.title = node.text;
-            
-            graphContainer.appendChild(el);
-            nodeElements.push(el);
-        });
-
-        edges.forEach(edge => {
-            const n1 = nodes[edge.source];
-            const n2 = nodes[edge.target];
-            const dx = n2.x - n1.x;
-            const dy = n2.y - n1.y;
-            const length = Math.sqrt(dx*dx + dy*dy);
-            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-
-            const line = document.createElement('div');
-            line.className = 'rhyme-line';
-            line.style.width = `${length}px`;
-            line.style.height = `${Math.min(edge.shared.length, 3)}px`;
-            line.style.left = `${n1.x}px`;
-            line.style.top = `${n1.y}px`;
-            line.style.transform = `rotate(${angle}deg)`;
-            line.title = `Rima: ${edge.shared.join(', ')}`;
-
-            // insert lines before nodes so they are underneath
-            graphContainer.insertBefore(line, graphContainer.firstChild);
-        });
+        if (termsContainer.innerHTML === '') termsContainer.innerHTML = '<span class="help-text">Nenhuma rima encontrada ainda.</span>';
+        if (suggestionsContainer.innerHTML === '') suggestionsContainer.innerHTML = '<span class="help-text">Ainda não há sugestões.</span>';
     }
 });

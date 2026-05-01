@@ -340,43 +340,55 @@ input[type="text"]:focus, input[type="password"]:focus {
 }
 
 /* Analysis View */
-.rhyme-container {
-    height: 250px;
+.patterns-panel {
     background: var(--surface);
     border-radius: 16px;
     border: 1px solid var(--border);
+    padding: 1.5rem;
     margin: 1rem 0;
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
-.rhyme-node {
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(187,134,252,0.2);
-    border: 1px solid var(--primary);
-    color: var(--text-primary);
+.patterns-section h3 {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    color: var(--cyan);
+    margin-bottom: 0.5rem;
+}
+.tag-cloud {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.tag-badge {
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
     font-size: 0.8rem;
-    padding: 0.5rem;
-    box-shadow: 0 0 10px rgba(187,134,252,0.3);
-    transition: transform 0.3s;
     cursor: pointer;
+    transition: all 0.2s;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
 }
-.rhyme-node:hover {
-    transform: scale(1.1);
-    background: rgba(3, 218, 198, 0.3);
-    border-color: var(--cyan);
+.tag-badge:hover {
+    background: var(--surface-hover);
+    border-color: var(--primary);
+    transform: translateY(-2px);
 }
-.rhyme-line {
-    position: absolute;
-    background: rgba(3, 218, 198, 0.3);
-    transform-origin: 0 50%;
+.tag-badge.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
 }
+.tag-badge.suggestion {
+    border-style: dashed;
+    border-color: var(--magenta);
+    color: var(--magenta);
+}
+.tag-badge .count {
+    font-size: 0.7rem;
+    opacity: 0.6;
+    margin-left: 0.3rem;
+}
+
 .dreams-list {
     display: flex;
     flex-direction: column;
@@ -575,7 +587,7 @@ input:checked + .slider:before {
             "header header"
             "filters filters"
             "controls controls"
-            "graph list";
+            "patterns list";
         gap: 1.5rem;
         height: 100%;
         overflow-y: auto;
@@ -593,11 +605,11 @@ input:checked + .slider:before {
     #view-analysis .insight-box {
         grid-column: 1 / -1;
     }
-    .rhyme-container {
-        grid-area: graph;
-        height: 100%;
-        min-height: 400px;
+    .patterns-panel {
+        grid-area: patterns;
+        height: auto;
         margin: 0;
+        overflow-y: auto;
     }
     .dreams-list {
         grid-area: list;
