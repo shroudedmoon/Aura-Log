@@ -101,7 +101,9 @@ Responda APENAS com o JSON. Nenhuma palavra a mais, sem formatação markdown en
 
             await window.db.saveSetting('activeIncubation', activeIncubation);
             
-            renderIncubation(activeIncubation);
+            await window.db.saveSetting('activeIncubation', activeIncubation);
+            
+            await renderIncubation(activeIncubation);
             statusMsg.textContent = "Incubação pronta!";
             setTimeout(() => statusMsg.textContent = "", 3000);
 
@@ -114,44 +116,61 @@ Responda APENAS com o JSON. Nenhuma palavra a mais, sem formatação markdown en
     });
 
     async function renderIncubation(data) {
-        sensorySeed.innerHTML = marked.parse(data.seed);
-        
-        dreamImage.src = "";
-        dreamImage.alt = "Gerando Imagem...";
-        resultDiv.classList.remove('hidden');
-
-        const shortPrompt = (data.imagePrompt || "surreal dreamlike scene").substring(0, 250);
-        const promptParam = encodeURIComponent(shortPrompt + ", masterpiece, highly detailed, dreamy, surreal, beautiful lighting");
-        const imgUrl = `https://image.pollinations.ai/prompt/${promptParam}?width=800&height=400&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
-        
-        dreamImage.onload = () => {
-            statusMsg.textContent = "Incubação Pronta!";
-            setTimeout(() => statusMsg.textContent = "", 3000);
+        try {
+            if (!data) throw new Error("Dados de incubação vazios");
             
-            const oldBox = document.getElementById('debug-url-box');
-            if(oldBox) oldBox.remove();
-        };
-
-        dreamImage.onerror = (error) => {
-            console.error("Erro ao carregar a imagem (onerror)", error);
-            dreamImage.alt = "Falha ao gerar imagem. A API pode estar congestionada.";
-            statusMsg.textContent = "Falha ao carregar a Imagem.";
-            statusMsg.style.color = "var(--magenta)";
-            
-            let debugBox = document.getElementById('debug-url-box');
-            if (!debugBox) {
-                debugBox = document.createElement('div');
-                debugBox.id = 'debug-url-box';
-                debugBox.style.fontSize = '0.7rem';
-                debugBox.style.wordBreak = 'break-all';
-                debugBox.style.marginTop = '1rem';
-                debugBox.style.color = 'var(--text-muted)';
-                resultDiv.appendChild(debugBox);
+            const seedText = data.seed || "Nenhuma semente gerada.";
+            try {
+                if (typeof marked !== 'undefined') {
+                    sensorySeed.innerHTML = marked.parse(seedText);
+                } else {
+                    sensorySeed.innerHTML = seedText;
+                }
+            } catch (err) {
+                console.error("Erro no marked:", err);
+                sensorySeed.innerHTML = seedText;
             }
-            debugBox.innerHTML = `<strong>Erro na Imagem.</strong> O navegador bloqueou ou a API falhou.<br>URL: <a href="${imgUrl}" target="_blank" style="color:var(--cyan)">Clique aqui para abrir a imagem no navegador</a>`;
-        };
+            
+            dreamImage.src = "";
+            dreamImage.alt = "Gerando Imagem...";
+            resultDiv.classList.remove('hidden');
 
-        dreamImage.src = imgUrl;
+            const shortPrompt = (data.imagePrompt || "surreal dreamlike scene").substring(0, 250);
+            const promptParam = encodeURIComponent(shortPrompt + ", masterpiece, highly detailed, dreamy, surreal, beautiful lighting");
+            const imgUrl = `https://image.pollinations.ai/prompt/${promptParam}?width=800&height=400&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
+            
+            dreamImage.onload = () => {
+                statusMsg.textContent = "Incubação Pronta!";
+                setTimeout(() => statusMsg.textContent = "", 3000);
+                
+                const oldBox = document.getElementById('debug-url-box');
+                if(oldBox) oldBox.remove();
+            };
+
+            dreamImage.onerror = (error) => {
+                console.error("Erro ao carregar a imagem (onerror)", error);
+                dreamImage.alt = "Falha ao gerar imagem. A API pode estar congestionada.";
+                statusMsg.textContent = "Falha ao carregar a Imagem.";
+                statusMsg.style.color = "var(--magenta)";
+                
+                let debugBox = document.getElementById('debug-url-box');
+                if (!debugBox) {
+                    debugBox = document.createElement('div');
+                    debugBox.id = 'debug-url-box';
+                    debugBox.style.fontSize = '0.7rem';
+                    debugBox.style.wordBreak = 'break-all';
+                    debugBox.style.marginTop = '1rem';
+                    debugBox.style.color = 'var(--text-muted)';
+                    resultDiv.appendChild(debugBox);
+                }
+                debugBox.innerHTML = `<strong>Erro na Imagem.</strong> O navegador bloqueou ou a API falhou.<br>URL: <a href="${imgUrl}" target="_blank" style="color:var(--cyan)">Clique aqui para abrir a imagem no navegador</a>`;
+            };
+
+            dreamImage.src = imgUrl;
+        } catch (e) {
+            console.error("Erro crítico em renderIncubation:", e);
+            statusMsg.textContent = "Erro de exibição: " + e.message;
+        }
     }
 
     rcToggleBtn.addEventListener('click', () => {
