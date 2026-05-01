@@ -200,10 +200,17 @@ Responda APENAS com o JSON. Nenhuma palavra a mais, sem formatação markdown en
                     rcToggleBtn.classList.replace('primary-btn', 'secondary-btn');
                     window.db.saveSetting('rcActive', true);
                     window.db.saveSetting('lastRC', Date.now());
-                    new Notification("Aura-Log", { body: "Checagens de Realidade ativadas. Fique lúcido." });
+                    
+                    if ('serviceWorker' in navigator) {
+                        navigator.serviceWorker.ready.then(reg => {
+                            reg.showNotification("Aura-Log", { body: "Checagens de Realidade ativadas. Fique lúcido.", icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/1x1.png/120px-1x1.png" });
+                        }).catch(() => new Notification("Aura-Log", { body: "Checagens de Realidade ativadas. Fique lúcido." }));
+                    } else {
+                        new Notification("Aura-Log", { body: "Checagens de Realidade ativadas. Fique lúcido." });
+                    }
                 } else {
                     rcStatusText.textContent = "Permissão negada pelo Navegador";
-                    alert("As notificações estão bloqueadas no seu navegador. Procure o ícone de 'Cadeado' na barra de endereços (onde fica a URL) e mude a permissão de Notificações para 'Permitir'.");
+                    alert("As notificações estão bloqueadas no seu navegador. Procure o ícone de 'Cadeado' na barra de endereços (onde fica a URL) e mude a permissão de Notificações para 'Permitir'. Se estiver no iPhone, você precisa adicionar o site à Tela de Início primeiro.");
                 }
             };
 
@@ -233,10 +240,19 @@ Responda APENAS com o JSON. Nenhuma palavra a mais, sem formatação markdown en
             const q = incubation.questions[Math.floor(Math.random() * incubation.questions.length)];
             
             if (Notification.permission === 'granted') {
-                new Notification("Checagem de Realidade", {
+                const title = "Checagem de Realidade";
+                const options = {
                     body: q,
                     icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/1x1.png/120px-1x1.png"
-                });
+                };
+
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.ready.then(reg => {
+                        reg.showNotification(title, options);
+                    }).catch(() => new Notification(title, options));
+                } else {
+                    new Notification(title, options);
+                }
             }
             
             await window.db.saveSetting('lastRC', Date.now());
