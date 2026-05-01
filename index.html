@@ -135,16 +135,12 @@
                         <p id="settings-status" class="status-msg"></p>
                     </div>
                     
-                    <div class="setting-group" style="margin-top: 1rem;">
-                        <label>Checagens de Realidade (Alertas)</label>
-                        <p class="help-text">Receba perguntas poéticas locais durante o dia para ancorar sua lucidez.</p>
-                        <div style="display:flex; align-items:center; gap: 1rem; margin-top: 0.5rem;">
-                            <label class="switch">
-                              <input type="checkbox" id="rc-toggle">
-                              <span class="slider round"></span>
-                            </label>
-                            <span id="rc-status-text" style="font-size:0.9rem; color:var(--text-secondary);">Desativado</span>
+                    <div class="setting-item" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--surface-light);">
+                        <div>
+                            <label style="display:block; margin-bottom:0.2rem;">Checagens de Realidade (Alertas)</label>
+                            <span style="font-size: 0.8rem; color: var(--text-muted);" id="rc-status-text">Desativado</span>
                         </div>
+                        <button id="rc-toggle-btn" class="primary-btn" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Ativar Alertas</button>
                     </div>
                 </div>
             </div>

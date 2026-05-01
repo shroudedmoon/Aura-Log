@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const dreamImage = document.getElementById('dream-image');
     const sensorySeed = document.getElementById('sensory-seed');
     
-    const rcToggle = document.getElementById('rc-toggle');
+    const rcToggleBtn = document.getElementById('rc-toggle-btn');
     const rcStatusText = document.getElementById('rc-status-text');
 
     // Load active incubation state
@@ -17,9 +17,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Load RC state
-    let rcActive = await window.db.getSetting('rcActive');
-    rcToggle.checked = !!rcActive;
-    rcStatusText.textContent = rcActive ? "Ativado (a cada 2h)" : "Desativado";
+    let isRcActive = false;
+    window.db.getSetting('rcActive').then(isActive => {
+        isRcActive = !!isActive;
+        rcToggleBtn.textContent = isRcActive ? "Desativar" : "Ativar Alertas";
+        rcStatusText.textContent = isRcActive ? "Ativado (a cada 2h)" : "Desativado";
+    });
 
     // Setup Notification Loop
     setInterval(checkRealityChecks, 60000); // check every minute
@@ -110,73 +113,86 @@ Responda APENAS com o JSON. Nenhuma palavra a mais, sem formatação markdown en
         }
     });
 
-    function renderIncubation(data) {
+    async function renderIncubation(data) {
         sensorySeed.innerHTML = marked.parse(data.seed);
         
         dreamImage.src = "";
-        dreamImage.alt = "Carregando a Visão do Portal...";
-        statusMsg.textContent = "Visualizando a Imagem...";
-        statusMsg.style.color = "var(--cyan)";
+        dreamImage.alt = "Gerando Imagem...";
+        resultDiv.classList.remove('hidden');
+
+        const promptParam = encodeURIComponent((data.imagePrompt || "surreal dreamlike scene") + " masterpiece, highly detailed, dreamy, surreal, beautiful lighting");
+        const imgUrl = `https://image.pollinations.ai/prompt/${promptParam}?width=800&height=400&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
         
-        const encodedPrompt = encodeURIComponent(data.imagePrompt + " masterpiece, highly detailed, dreamy, surreal, beautiful lighting");
-        dreamImage.onload = () => {
+        try {
+            const response = await fetch(imgUrl);
+            if (!response.ok) throw new Error("API retornou " + response.status);
+            const blob = await response.blob();
+            dreamImage.src = URL.createObjectURL(blob);
             statusMsg.textContent = "Incubação Pronta!";
             setTimeout(() => statusMsg.textContent = "", 3000);
-        };
-        dreamImage.onerror = () => {
+            
+            const oldBox = document.getElementById('debug-url-box');
+            if(oldBox) oldBox.remove();
+        } catch (error) {
+            console.error(error);
+            dreamImage.alt = "Falha ao gerar imagem: " + error.message;
             statusMsg.textContent = "Falha ao carregar a Imagem.";
             statusMsg.style.color = "var(--magenta)";
-        // Debug da URL:
-        const debugBox = document.getElementById('debug-url-box') || document.createElement('div');
-        debugBox.id = 'debug-url-box';
-        debugBox.style.fontSize = '0.7rem';
-        debugBox.style.wordBreak = 'break-all';
-        debugBox.style.marginTop = '1rem';
-        debugBox.style.color = 'var(--text-muted)';
-        debugBox.textContent = `URL da Imagem: https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=400&nologo=true`;
-        resultDiv.appendChild(debugBox);
-
-        dreamImage.src = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=400&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
-        
-        resultDiv.classList.remove('hidden');
+            
+            let debugBox = document.getElementById('debug-url-box');
+            if (!debugBox) {
+                debugBox = document.createElement('div');
+                debugBox.id = 'debug-url-box';
+                debugBox.style.fontSize = '0.7rem';
+                debugBox.style.wordBreak = 'break-all';
+                debugBox.style.marginTop = '1rem';
+                debugBox.style.color = 'var(--text-muted)';
+                resultDiv.appendChild(debugBox);
+            }
+            debugBox.innerHTML = `<strong>Erro na Imagem:</strong> ${error.message}<br>URL: <a href="${imgUrl}" target="_blank" style="color:var(--cyan)">Testar Manualmente</a>`;
+        }
     }
 
-    rcToggle.addEventListener('click', (e) => {
-        const isChecked = e.target.checked;
-        if (isChecked) {
+    rcToggleBtn.addEventListener('click', () => {
+        if (isRcActive) {
+            // Desativar
+            isRcActive = false;
+            rcStatusText.textContent = "Desativado";
+            rcToggleBtn.textContent = "Ativar Alertas";
+            rcToggleBtn.classList.replace('secondary-btn', 'primary-btn');
+            window.db.saveSetting('rcActive', false);
+        } else {
+            // Ativar
             if (!("Notification" in window)) {
-                alert("Este navegador não suporta notificações.");
-                rcToggle.checked = false;
+                alert("Este navegador não suporta notificações de desktop.");
                 return;
             }
             if (window.isSecureContext === false) {
-                alert("Bloqueado: Notificações exigem conexão segura (HTTPS) ou 'localhost'. Tente usar o GitHub Pages para testar no celular.");
-                rcToggle.checked = false;
+                alert("Erro: Para as notificações funcionarem, você deve acessar o app através do link HTTPS seguro do GitHub Pages, e não por IP local.");
                 return;
             }
 
-            const handlePermission = async (perm) => {
+            const handlePermission = (perm) => {
                 if (perm === 'granted') {
+                    isRcActive = true;
                     rcStatusText.textContent = "Ativado (a cada 2h)";
-                    await window.db.saveSetting('rcActive', true);
-                    await window.db.saveSetting('lastRC', Date.now());
+                    rcToggleBtn.textContent = "Desativar";
+                    rcToggleBtn.classList.replace('primary-btn', 'secondary-btn');
+                    window.db.saveSetting('rcActive', true);
+                    window.db.saveSetting('lastRC', Date.now());
                     new Notification("Aura-Log", { body: "Checagens de Realidade ativadas. Fique lúcido." });
                 } else {
-                    rcToggle.checked = false;
-                    rcStatusText.textContent = "Permissão negada";
-                    alert("As notificações foram bloqueadas. Você pode precisar permitir manualmente nas configurações (o ícone de cadeado na barra de endereços) do seu navegador.");
+                    rcStatusText.textContent = "Permissão negada pelo Navegador";
+                    alert("As notificações estão bloqueadas no seu navegador. Procure o ícone de 'Cadeado' na barra de endereços (onde fica a URL) e mude a permissão de Notificações para 'Permitir'.");
                 }
             };
 
             const permPromise = Notification.requestPermission();
-            if (permPromise) {
+            if (permPromise !== undefined) {
                 permPromise.then(handlePermission);
             } else {
                 Notification.requestPermission(handlePermission);
             }
-        } else {
-            rcStatusText.textContent = "Desativado";
-            window.db.saveSetting('rcActive', false);
         }
     });
 
