@@ -97,6 +97,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    // Custom Tags Logic
+    const customTagInput = document.getElementById('custom-tag-input');
+    const addTagBtn = document.getElementById('add-tag-btn');
+
+    const addCustomTag = () => {
+        const tag = customTagInput.value.trim().replace(/\s+/g, '_');
+        if (tag) {
+            dreamInput.value += ` #${tag} `;
+            customTagInput.value = '';
+            dreamInput.focus();
+            dreamInput.dispatchEvent(new Event('input'));
+        }
+    };
+
+    addTagBtn.addEventListener('click', addCustomTag);
+    customTagInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') addCustomTag();
+    });
+
     // Quick Tags
     tagBtns.forEach(btn => {
         btn.addEventListener('click', () => {

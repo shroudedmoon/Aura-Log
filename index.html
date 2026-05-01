@@ -37,6 +37,10 @@
                     <button class="tag-btn" data-tag="Pesadelo">🌑 Pesadelo</button>
                     <button class="tag-btn" data-tag="Recorrente">🔄 Recorrente</button>
                 </div>
+                <div class="tag-input-wrapper" style="margin-bottom: 1rem; display: flex; gap: 0.5rem;">
+                    <input type="text" id="custom-tag-input" placeholder="Nova tag..." style="margin-bottom: 0; flex: 1;">
+                    <button id="add-tag-btn" class="secondary-btn" style="padding: 0.5rem 1rem; flex: none;">+</button>
+                </div>
                 <div class="action-row">
                     <button id="save-dream-btn" class="primary-btn" style="width: 100%;">Salvar</button>
                 </div>
@@ -90,8 +94,7 @@
                 </div>
 
                 <div class="analysis-controls" style="margin-top: 1rem; display: flex; gap: 0.5rem;">
-                    <button id="refresh-analysis" class="secondary-btn" style="flex:1;">Atualizar</button>
-                    <button id="get-insight-btn" class="primary-btn" style="flex:2;">Sincromisticismo (IA)</button>
+                    <button id="get-insight-btn" class="primary-btn" style="flex:1;">Sincromisticismo (IA)</button>
                 </div>
 
                 <div id="insight-container" class="insight-box hidden" style="margin-top: 1rem; margin-bottom: 1rem;">

@@ -73,8 +73,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    refreshBtn.addEventListener('click', window.refreshAnalysis);
-
     window.deleteDream = async (id) => {
         if (confirm("Tem certeza que deseja excluir este sonho?")) {
             await window.db.deleteDream(id);
@@ -119,13 +117,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (dreams.length < 1) return;
 
-        const stopWords = new Set(['o','a','e','um','uma','de','do','da','em','no','na','que','eu','foi','com','mas','não','para','sonho','sonhei','por','se','os','as','dos','das','nos','nas','meu','minha','meus','minhas','estava','estou','tinha','tenho']);
+        // Expanded stop words in Portuguese (articles, conjunctions, pronouns, adverbs, etc.)
+        const stopWords = new Set([
+            'o','a','e','um','uma','de','do','da','em','no','na','que','eu','foi','com','mas','não','para','por','se','os','as','dos','das','nos','nas','meu','minha','meus','minhas',
+            'estava','estou','tinha','tenho','quando','algo','ainda','muito','mais','também','sobre','pelo','pela','isso','esta','este','esse','essa','tudo','nada','onde','como','cada',
+            'então','depois','antes','agora','sempre','nunca','num','numa','pelos','pelas','você','ele','ela','nós','eles','elas'
+        ]);
         
         const wordFreq = {};
-        const wordInDreams = {}; // word -> Set of dream IDs
         const existingTags = new Set();
 
-        dreams.forEach((dream, idx) => {
+        dreams.forEach((dream) => {
             const words = dream.text.toLowerCase()
                 .replace(/[^\w\sà-ú]/g, ' ')
                 .split(/\s+/)
@@ -136,12 +138,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const uniqueWords = new Set(words);
             uniqueWords.forEach(word => {
                 wordFreq[word] = (wordFreq[word] || 0) + 1;
-                if (!wordInDreams[word]) wordInDreams[word] = new Set();
-                wordInDreams[word].add(idx);
             });
         });
 
-        // Filter words that appear in more than 1 dream
         const recurring = Object.entries(wordFreq)
             .filter(([word, count]) => count > 1)
             .sort((a, b) => b[1] - a[1]);
