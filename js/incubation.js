@@ -137,7 +137,8 @@ Responda APENAS com o JSON. Nenhuma palavra a mais, sem formatação markdown en
 
             const shortPrompt = (data.imagePrompt || "surreal dreamlike scene").substring(0, 250);
             const promptParam = encodeURIComponent(shortPrompt + ", masterpiece, highly detailed, dreamy, surreal, beautiful lighting");
-            const imgUrl = `https://image.pollinations.ai/prompt/${promptParam}?width=800&height=400&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
+            const primaryUrl = `https://image.pollinations.ai/prompt/${promptParam}?width=800&height=400&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
+            const fallbackUrl = `https://api.airforce/imagine?prompt=${promptParam}`;
             
             dreamImage.onload = () => {
                 statusMsg.textContent = "Incubação Pronta!";
@@ -147,10 +148,18 @@ Responda APENAS com o JSON. Nenhuma palavra a mais, sem formatação markdown en
                 if(oldBox) oldBox.remove();
             };
 
+            let usingFallback = false;
             dreamImage.onerror = (error) => {
-                console.error("Erro ao carregar a imagem (onerror)", error);
-                dreamImage.alt = "Falha ao gerar imagem. A API pode estar congestionada.";
-                statusMsg.textContent = "Falha ao carregar a Imagem.";
+                if (!usingFallback) {
+                    console.warn("Pollinations API falhou ou está cheia. Tentando servidor secundário...");
+                    usingFallback = true;
+                    dreamImage.src = fallbackUrl;
+                    return;
+                }
+
+                console.error("Erro ao carregar a imagem em ambos os servidores", error);
+                dreamImage.alt = "Falha ao gerar imagem. As APIs estão congestionadas.";
+                statusMsg.textContent = "Servidores de Arte Congestionados.";
                 statusMsg.style.color = "var(--magenta)";
                 
                 let debugBox = document.getElementById('debug-url-box');
@@ -163,10 +172,20 @@ Responda APENAS com o JSON. Nenhuma palavra a mais, sem formatação markdown en
                     debugBox.style.color = 'var(--text-muted)';
                     resultDiv.appendChild(debugBox);
                 }
-                debugBox.innerHTML = `<strong>Erro na Imagem.</strong> O navegador bloqueou ou a API falhou.<br>URL: <a href="${imgUrl}" target="_blank" style="color:var(--cyan)">Clique aqui para abrir a imagem no navegador</a>`;
+                
+                debugBox.innerHTML = `<strong>Nenhum servidor livre no momento.</strong> Ambos os provedores de IA estão lotados.<br>
+                <button id="retry-img-btn" class="secondary-btn" style="padding:0.4rem 0.8rem; font-size:0.8rem; margin-top:0.5rem; margin-bottom:0.5rem;">Forçar Nova Tentativa</button><br>
+                URL 1: <a href="${primaryUrl}" target="_blank" style="color:var(--cyan)">Testar Pollinations</a><br>
+                URL 2: <a href="${fallbackUrl}" target="_blank" style="color:var(--cyan)">Testar Airforce</a>`;
+
+                document.getElementById('retry-img-btn').addEventListener('click', () => {
+                    usingFallback = false;
+                    dreamImage.src = primaryUrl;
+                    debugBox.innerHTML = "Tentando forçar conexão...";
+                });
             };
 
-            dreamImage.src = imgUrl;
+            dreamImage.src = primaryUrl;
         } catch (e) {
             console.error("Erro crítico em renderIncubation:", e);
             statusMsg.textContent = "Erro de exibição: " + e.message;
