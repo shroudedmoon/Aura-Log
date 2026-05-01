@@ -642,9 +642,15 @@ input:checked + .slider:before {
    Desktop Optimization Layout
 --------------------------------*/
 @media (min-width: 769px) {
+    body {
+        justify-content: flex-start;
+    }
+
     .app-container {
         padding-bottom: 0;
         padding-left: 100px;
+        max-width: 1400px;
+        width: 100%;
     }
     
     .bottom-nav {
@@ -665,7 +671,7 @@ input:checked + .slider:before {
 
     #view-entry.active {
         display: grid;
-        grid-template-columns: 1fr 350px;
+        grid-template-columns: 1fr 400px;
         grid-template-areas: 
             "header suggestions"
             "title suggestions"
@@ -673,12 +679,12 @@ input:checked + .slider:before {
             "area suggestions"
             "area insight"
             "save insight";
-        gap: 1.5rem;
+        gap: 2rem;
     }
     #view-entry .view-header { grid-area: header; }
     #view-entry .title-selector { grid-area: title; }
     #view-entry .date-selector { grid-area: date; }
-    #view-entry .entry-area { grid-area: area; height: 100%; min-height: 400px; }
+    #view-entry .entry-area { grid-area: area; height: 100%; min-height: 500px; }
     #view-entry .action-row { grid-area: save; }
     #view-entry .entry-suggestions-panel { grid-area: suggestions; margin: 0; align-self: start; }
     #view-entry .insight-box { grid-area: insight; margin: 0; }
@@ -687,8 +693,8 @@ input:checked + .slider:before {
     #view-history.active,
     #view-analysis.active {
         display: block;
-        max-width: 900px;
-        margin: 0 auto;
+        max-width: 1200px;
+        margin: 0;
     }
 
     /* Analysis View Grid */
@@ -734,10 +740,17 @@ input:checked + .slider:before {
     /* Incubation View Grid */
     #view-incubation .incubation-panel {
         display: grid;
-        grid-template-columns: 1fr 2fr;
+        grid-template-columns: 1fr 1fr;
         gap: 3rem;
+        max-width: 1200px;
     }
     #view-incubation .setting-group {
+        margin: 0;
+    }
+
+    /* Settings View */
+    #view-settings .settings-panel {
+        max-width: 800px;
         margin: 0;
     }
 }
