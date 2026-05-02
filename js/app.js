@@ -275,7 +275,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     };
                     setTimeout(() => {
                         if (updateStatus.textContent === "Verificando novos portais...") {
-                            updateStatus.textContent = "Você já está na versão mais recente.";
+                            updateStatus.textContent = "Você já está na versão v2.401.";
                         }
                     }, 2000);
                 }

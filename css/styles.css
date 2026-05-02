@@ -67,6 +67,12 @@ h1 {
     padding-bottom: 5rem; /* space for bottom nav */
 }
 
+@media (display-mode: standalone) {
+    #main-content {
+        padding-bottom: 150px !important;
+    }
+}
+
 .view {
     display: none;
     animation: fadeIn 0.3s ease;
