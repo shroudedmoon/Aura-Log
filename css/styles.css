@@ -23,20 +23,16 @@
     -webkit-tap-highlight-color: transparent;
 }
 
-html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-}
-
 body {
     background-color: var(--bg-color);
+    /* Dreamy, non-distracting background */
     background-image: 
         radial-gradient(circle at 15% 50%, rgba(3, 218, 198, 0.05), transparent 25%),
         radial-gradient(circle at 85% 30%, rgba(207, 102, 121, 0.05), transparent 25%),
         radial-gradient(circle at 50% 80%, rgba(187, 134, 252, 0.05), transparent 40%);
     color: var(--text-primary);
     font-family: var(--font-body);
+    min-height: 100dvh;
     display: flex;
     justify-content: center;
     overflow: hidden;
@@ -45,12 +41,11 @@ body {
 .app-container {
     width: 100%;
     max-width: 600px;
-    height: 100%;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
     position: relative;
     background: transparent;
-    overflow: hidden;
 }
 
 /* Typography */
@@ -69,7 +64,7 @@ h1 {
     flex: 1;
     overflow-y: auto;
     padding: 1.5rem;
-    padding-bottom: calc(160px + env(safe-area-inset-bottom, 20px)); /* Dynamic safety spacer */
+    padding-bottom: 0; 
     -webkit-overflow-scrolling: touch;
 }
 
@@ -86,7 +81,6 @@ h1 {
     align-items: center;
     border-top: 1px solid var(--border);
     z-index: 1000;
-    transition: transform 0.3s ease;
 }
 
 .bottom-nav.nav-hidden {

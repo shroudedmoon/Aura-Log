@@ -57,24 +57,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     });
-    // Mobile: Hide Nav on Scroll
-    const mainContent = document.getElementById('main-content');
-    const bottomNav = document.querySelector('.bottom-nav');
-    let lastScrollY = 0;
 
-    if (mainContent) {
-        mainContent.addEventListener('scroll', () => {
-            if (window.innerWidth > 768) return; // Only for mobile
-            
-            const currentScrollY = mainContent.scrollTop;
-            if (currentScrollY > lastScrollY && currentScrollY > 50) {
-                bottomNav.classList.add('nav-hidden');
-            } else {
-                bottomNav.classList.remove('nav-hidden');
-            }
-            lastScrollY = currentScrollY;
-        }, { passive: true });
-    }
 
 
     // Edit Dream Hook
@@ -279,21 +262,33 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 if (registration.waiting) {
                     notifyNewVersion(registration);
-                } else {
-                    setTimeout(() => {
-                        if (updateStatus.textContent.includes("Buscando")) {
-                            const version = document.getElementById('version-text').textContent;
-                            updateStatus.textContent = `Aura-Log está atualizado (${version}).`;
-                        }
-                    }, 2000);
+        } else {
+            setTimeout(() => {
+                if (updateStatus.textContent.includes("Buscando")) {
+                    updateStatus.textContent = "Você já está na versão v2.38.";
                 }
-            } catch (e) {
-                console.error(e);
-                updateStatus.textContent = "Erro ao conectar com o servidor.";
-                updateStatus.style.color = "var(--magenta)";
-            }
-        });
+            }, 2000);
+        }
+    } catch (e) {
+        console.error(e);
+        updateStatus.textContent = "Erro ao conectar com o servidor.";
+        updateStatus.style.color = "var(--magenta)";
     }
+});
+
+function addSpacerToViews() {
+    const views = document.querySelectorAll('.view');
+    views.forEach(view => {
+        const spacer = document.createElement('div');
+        spacer.className = 'view-spacer';
+        spacer.style.height = '150px';
+        spacer.style.width = '100%';
+        spacer.style.flexShrink = '0';
+        spacer.style.pointerEvents = 'none';
+        view.appendChild(spacer);
+    });
+}
+addSpacerToViews();
 
     function notifyNewVersion(registration) {
         updateStatus.textContent = "Nova versão disponível! Aplicando...";
