@@ -64,22 +64,20 @@ h1 {
     flex: 1;
     overflow-y: auto;
     padding: 1.5rem;
-    padding-bottom: 100px; /* Safe space for fixed nav */
+    padding-bottom: 90px; /* Space so last item ends above nav */
 }
 
 .bottom-nav {
-    position: fixed;
+    position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
     height: 70px;
-    background: rgba(11, 6, 20, 0.7);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: var(--surface);
     display: flex;
     justify-content: space-around;
     align-items: center;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid var(--border);
     z-index: 1000;
 }
 
