@@ -225,6 +225,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (window.refreshAnalysis) window.refreshAnalysis();
     };
 
+    // Automatic Update Check on Startup
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(reg => {
+            reg.update();
+            
+            // Listen for changes
+            reg.onupdatefound = () => {
+                const newWorker = reg.installing;
+                newWorker.onstatechange = () => {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        notifyNewVersion(reg);
+                    }
+                };
+            };
+        });
+    }
+
     // PWA Update Logic
     const updateBtn = document.getElementById('update-btn');
     const updateStatus = document.getElementById('update-status');
@@ -236,35 +253,25 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-            updateStatus.textContent = "Verificando novos portais...";
+            updateStatus.textContent = "Buscando atualizações nos portais...";
             updateStatus.style.color = "var(--cyan)";
 
             try {
                 const registration = await navigator.serviceWorker.ready;
                 await registration.update();
                 
-                // If there's already a waiting worker, notify
                 if (registration.waiting) {
                     notifyNewVersion(registration);
                 } else {
-                    // Wait for new worker to be installed
-                    registration.onupdatefound = () => {
-                        const newWorker = registration.installing;
-                        newWorker.onstatechange = () => {
-                            if (newWorker.state === 'installed') {
-                                notifyNewVersion(registration);
-                            }
-                        };
-                    };
                     setTimeout(() => {
-                        if (updateStatus.textContent === "Verificando novos portais...") {
-                            updateStatus.textContent = "Você já está na versão mais recente.";
+                        if (updateStatus.textContent.includes("Buscando")) {
+                            updateStatus.textContent = "Você já está na versão v2.35.";
                         }
                     }, 2000);
                 }
             } catch (e) {
                 console.error(e);
-                updateStatus.textContent = "Erro ao verificar atualizações.";
+                updateStatus.textContent = "Erro ao conectar com o servidor.";
                 updateStatus.style.color = "var(--magenta)";
             }
         });

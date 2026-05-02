@@ -64,13 +64,11 @@ h1 {
     flex: 1;
     overflow-y: auto;
     padding: 1.5rem;
-    padding-bottom: 90px; /* Space so last item ends above nav */
+    padding-bottom: 2rem; /* Normal padding */
 }
 
 .bottom-nav {
-    position: absolute;
-    bottom: 0;
-    left: 0;
+    flex-shrink: 0;
     width: 100%;
     height: 70px;
     background: var(--surface);
@@ -665,6 +663,7 @@ input:checked + .slider:before {
         padding-left: 100px;
         max-width: 1600px;
         width: 100%;
+        flex-direction: row;
     }
     
     #main-content {
