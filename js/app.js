@@ -282,7 +282,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 } else {
                     setTimeout(() => {
                         if (updateStatus.textContent.includes("Buscando")) {
-                            updateStatus.textContent = "Você já está na versão v2.35.";
+                            const version = document.getElementById('version-text').textContent;
+                            updateStatus.textContent = `Aura-Log está atualizado (${version}).`;
                         }
                     }, 2000);
                 }
