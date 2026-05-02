@@ -64,7 +64,8 @@ h1 {
     flex: 1;
     overflow-y: auto;
     padding: 1.5rem;
-    padding-bottom: 140px; /* Spacer box at the bottom */
+    padding-bottom: calc(160px + env(safe-area-inset-bottom, 20px)); /* Dynamic safety spacer */
+    -webkit-overflow-scrolling: touch;
 }
 
 .bottom-nav {
@@ -72,7 +73,8 @@ h1 {
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 70px;
+    height: calc(70px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
     background: var(--surface);
     display: flex;
     justify-content: space-around;
