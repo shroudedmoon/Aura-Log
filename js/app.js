@@ -59,18 +59,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // Mobile: Hide Nav on Scroll
-    let lastScrollY = window.scrollY;
+    const mainContent = document.getElementById('main-content');
     const bottomNav = document.querySelector('.bottom-nav');
-    window.addEventListener('scroll', () => {
-        if (window.innerWidth > 768) return; // Only for mobile
-        
-        if (window.scrollY > lastScrollY && window.scrollY > 50) {
-            bottomNav.classList.add('nav-hidden');
-        } else {
-            bottomNav.classList.remove('nav-hidden');
-        }
-        lastScrollY = window.scrollY;
-    }, { passive: true });
+    let lastScrollY = 0;
+
+    if (mainContent) {
+        mainContent.addEventListener('scroll', () => {
+            if (window.innerWidth > 768) return; // Only for mobile
+            
+            const currentScrollY = mainContent.scrollTop;
+            if (currentScrollY > lastScrollY && currentScrollY > 50) {
+                bottomNav.classList.add('nav-hidden');
+            } else {
+                bottomNav.classList.remove('nav-hidden');
+            }
+            lastScrollY = currentScrollY;
+        }, { passive: true });
+    }
 
     // Edit Dream Hook
     window.editDream = async (id) => {
