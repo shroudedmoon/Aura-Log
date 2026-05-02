@@ -237,6 +237,59 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (window.refreshAnalysis) window.refreshAnalysis();
     };
 
+    // PWA Update Logic
+    const updateBtn = document.getElementById('update-btn');
+    const updateStatus = document.getElementById('update-status');
+
+    if (updateBtn) {
+        updateBtn.addEventListener('click', async () => {
+            if (!('serviceWorker' in navigator)) {
+                updateStatus.textContent = "Navegador não suporta Service Workers.";
+                return;
+            }
+
+            updateStatus.textContent = "Verificando novos portais...";
+            updateStatus.style.color = "var(--cyan)";
+
+            try {
+                const registration = await navigator.serviceWorker.ready;
+                await registration.update();
+                
+                // If there's already a waiting worker, notify
+                if (registration.waiting) {
+                    notifyNewVersion();
+                } else {
+                    // Wait for new worker to be installed
+                    registration.onupdatefound = () => {
+                        const newWorker = registration.installing;
+                        newWorker.onstatechange = () => {
+                            if (newWorker.state === 'installed') {
+                                notifyNewVersion();
+                            }
+                        };
+                    };
+                    setTimeout(() => {
+                        if (updateStatus.textContent === "Verificando novos portais...") {
+                            updateStatus.textContent = "Você já está na versão mais recente.";
+                        }
+                    }, 2000);
+                }
+            } catch (e) {
+                console.error(e);
+                updateStatus.textContent = "Erro ao verificar atualizações.";
+                updateStatus.style.color = "var(--magenta)";
+            }
+        });
+    }
+
+    function notifyNewVersion() {
+        updateStatus.textContent = "Nova versão disponível! Reiniciando...";
+        updateStatus.style.color = "var(--primary)";
+        setTimeout(() => {
+            window.location.reload();
+        }, 1500);
+    }
+
     function getTagsFromText(text) {
         const regex = /#([\wÀ-ÿ]+)/g;
         const tags = [];

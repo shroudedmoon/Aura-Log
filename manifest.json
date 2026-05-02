@@ -7,9 +7,10 @@
   "theme_color": "#0b0614",
   "icons": [
     {
-      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/1x1.png/120px-1x1.png",
-      "sizes": "192x192",
-      "type": "image/png"
+      "src": "assets/icons/logo.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
