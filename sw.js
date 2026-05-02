@@ -1,4 +1,4 @@
-const CACHE_NAME = 'auralog-v2.4';
+const CACHE_NAME = 'auralog-v2.41';
 const ASSETS = [
     './',
     './index.html',

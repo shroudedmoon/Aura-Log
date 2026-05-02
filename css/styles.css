@@ -23,17 +23,20 @@
     -webkit-tap-highlight-color: transparent;
 }
 
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
 body {
     background-color: var(--bg-color);
-    /* Dreamy, non-distracting background */
     background-image: 
         radial-gradient(circle at 15% 50%, rgba(3, 218, 198, 0.05), transparent 25%),
         radial-gradient(circle at 85% 30%, rgba(207, 102, 121, 0.05), transparent 25%),
         radial-gradient(circle at 50% 80%, rgba(187, 134, 252, 0.05), transparent 40%);
     color: var(--text-primary);
     font-family: var(--font-body);
-    height: 100vh; /* Standard VH */
-    height: -webkit-fill-available;
     display: flex;
     justify-content: center;
     overflow: hidden;
@@ -47,6 +50,7 @@ body {
     flex-direction: column;
     position: relative;
     background: transparent;
+    overflow: hidden;
 }
 
 /* Typography */
