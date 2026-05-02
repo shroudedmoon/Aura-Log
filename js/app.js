@@ -262,14 +262,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 // If there's already a waiting worker, notify
                 if (registration.waiting) {
-                    notifyNewVersion();
+                    notifyNewVersion(registration);
                 } else {
                     // Wait for new worker to be installed
                     registration.onupdatefound = () => {
                         const newWorker = registration.installing;
                         newWorker.onstatechange = () => {
                             if (newWorker.state === 'installed') {
-                                notifyNewVersion();
+                                notifyNewVersion(registration);
                             }
                         };
                     };
@@ -287,12 +287,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    function notifyNewVersion() {
-        updateStatus.textContent = "Nova versão disponível! Reiniciando...";
+    function notifyNewVersion(registration) {
+        updateStatus.textContent = "Nova versão disponível! Aplicando...";
         updateStatus.style.color = "var(--primary)";
+        
+        if (registration && registration.waiting) {
+            registration.waiting.postMessage('SKIP_WAITING');
+        }
+
         setTimeout(() => {
             window.location.reload();
-        }, 1500);
+        }, 1000);
     }
 
     function getTagsFromText(text) {

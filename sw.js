@@ -1,4 +1,4 @@
-const CACHE_NAME = 'auralog-v2.2';
+const CACHE_NAME = 'auralog-v2.3';
 const ASSETS = [
     './',
     './index.html',
@@ -13,6 +13,7 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', event => {
+    self.skipWaiting(); // Force activation
     event.waitUntil(
         caches.open(CACHE_NAME).then(cache => {
             return cache.addAll(ASSETS);
@@ -36,6 +37,15 @@ self.addEventListener('activate', event => {
                     return caches.delete(key);
                 }
             })
-        ))
+        )).then(() => {
+            return self.clients.claim(); // Take control immediately
+        })
     );
+});
+
+// Listener for skipWaiting message from app
+self.addEventListener('message', (event) => {
+    if (event.data === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
 });
