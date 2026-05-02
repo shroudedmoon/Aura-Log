@@ -1,4 +1,4 @@
-const CACHE_NAME = 'auralog-v2.3';
+const CACHE_NAME = 'auralog-v2.31';
 const ASSETS = [
     './',
     './index.html',
@@ -9,23 +9,14 @@ const ASSETS = [
     './js/analysis.js',
     './js/incubation.js',
     './js/sync.js',
-    './manifest.json'
+    './manifest.json',
+    './assets/icons/logo.png'
 ];
 
 self.addEventListener('install', event => {
-    self.skipWaiting(); // Force activation
+    self.skipWaiting();
     event.waitUntil(
-        caches.open(CACHE_NAME).then(cache => {
-            return cache.addAll(ASSETS);
-        })
-    );
-});
-
-self.addEventListener('fetch', event => {
-    event.respondWith(
-        caches.match(event.request).then(response => {
-            return response || fetch(event.request);
-        })
+        caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
     );
 });
 
@@ -33,19 +24,28 @@ self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys().then(keys => Promise.all(
             keys.map(key => {
-                if (key !== CACHE_NAME) {
-                    return caches.delete(key);
-                }
+                if (key !== CACHE_NAME) return caches.delete(key);
             })
-        )).then(() => {
-            return self.clients.claim(); // Take control immediately
-        })
+        )).then(() => self.clients.claim())
     );
 });
 
-// Listener for skipWaiting message from app
+self.addEventListener('fetch', event => {
+    // Network first strategy
+    event.respondWith(
+        fetch(event.request)
+            .then(response => {
+                // Optional: update cache with new version from network
+                if (response.ok) {
+                    const copy = response.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+                }
+                return response;
+            })
+            .catch(() => caches.match(event.request))
+    );
+});
+
 self.addEventListener('message', (event) => {
-    if (event.data === 'SKIP_WAITING') {
-        self.skipWaiting();
-    }
+    if (event.data === 'SKIP_WAITING') self.skipWaiting();
 });
