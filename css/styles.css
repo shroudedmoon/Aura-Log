@@ -64,11 +64,13 @@ h1 {
     flex: 1;
     overflow-y: auto;
     padding: 1.5rem;
-    padding-bottom: 2rem; /* Normal padding */
+    padding-bottom: 140px; /* Spacer box at the bottom */
 }
 
 .bottom-nav {
-    flex-shrink: 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
     width: 100%;
     height: 70px;
     background: var(--surface);
@@ -77,6 +79,11 @@ h1 {
     align-items: center;
     border-top: 1px solid var(--border);
     z-index: 1000;
+    transition: transform 0.3s ease;
+}
+
+.bottom-nav.nav-hidden {
+    transform: translateY(100%);
 }
 
 .view {

@@ -57,7 +57,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     });
+    // Mobile: Hide Nav on Scroll
+    const mainContent = document.getElementById('main-content');
+    const bottomNav = document.querySelector('.bottom-nav');
+    let lastScrollY = 0;
 
+    if (mainContent) {
+        mainContent.addEventListener('scroll', () => {
+            if (window.innerWidth > 768) return; // Only for mobile
+            
+            const currentScrollY = mainContent.scrollTop;
+            if (currentScrollY > lastScrollY && currentScrollY > 50) {
+                bottomNav.classList.add('nav-hidden');
+            } else {
+                bottomNav.classList.remove('nav-hidden');
+            }
+            lastScrollY = currentScrollY;
+        }, { passive: true });
+    }
 
 
     // Edit Dream Hook
