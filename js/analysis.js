@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.currentDreamsList = savedDreams;
         
         if (listContainer) renderList(savedDreams);
-        if (graphContainer) renderConstellation(savedDreams);
+        if (graphContainer) await renderConstellation(savedDreams);
         renderPatterns(savedDreams);
     };
 
@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function renderConstellation(dreams) {
+    async function renderConstellation(dreams) {
         if (!graphContainer) return;
         graphContainer.innerHTML = '';
         
