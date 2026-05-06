@@ -215,56 +215,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         container.innerHTML = '';
         
-        // Add the three default tags first
         const defaults = ['Lúcido', 'Pesadelo', 'Recorrente'];
         const pinnedTags = await window.db.getSetting('pinnedTags') || [];
         
-        const allSuggestions = Array.from(new Set([...defaults, ...pinnedTags]));
+        // Get all unique tags used in history
+        const dreams = await window.db.getAllDreams();
+        const usedTags = new Set();
+        dreams.forEach(d => {
+            if (d.tags) d.tags.forEach(t => usedTags.add(t));
+        });
+
+        const allSuggestions = Array.from(new Set([...defaults, ...pinnedTags, ...usedTags]));
 
         allSuggestions.forEach(tag => {
             const badge = document.createElement('div');
-            badge.className = 'tag-badge active';
+            const isPinned = pinnedTags.includes(tag) || defaults.includes(tag);
+            badge.className = `tag-badge ${isPinned ? 'active' : ''}`;
             badge.textContent = tag;
             badge.onclick = () => addActiveTag(tag);
-            container.appendChild(badge);
-        });
-
-        // Get recurring terms from all dreams to suggest
-        const dreams = await window.db.getAllDreams();
-        const savedDreams = dreams.filter(d => !d.isDraft);
-        
-        const stopWords = new Set([
-            'o','a','e','um','uma','de','do','da','em','no','na','que','eu','foi','com','mas','não','para','por','se','os','as','dos','das','nos','nas','meu','minha','meus','minhas',
-            'estava','estou','tinha','tenho','quando','algo','ainda','muito','mais','também','sobre','pelo','pela','isso','esta','este','esse','essa','tudo','nada','onde','como','cada',
-            'então','depois','antes','agora','sempre','nunca','num','numa','pelos','pelas','você','ele','ela','nós','eles','elas',
-            'pode','pelo','pela','pelas','pelos','estão','esteve','estavam','ter','tinha','tinham','fazer','fui','ser','era','eram','quem','qual','quais','algum','alguma','alguns','algumas',
-            'está','tendo','acabo','outras','outros','enquanto','disso','daqui','ali','lá','assim','bem','tão','apenas','só',
-            'dentro','dele','dela','tipo','parece','coisa','coisas','disse','falar','falou','gente','pessoa','pessoas'
-        ]);
-        
-        const freq = {};
-        const tagsInUse = new Set();
-        savedDreams.forEach(d => {
-            if(d.tags) d.tags.forEach(t => tagsInUse.add(t.toLowerCase()));
-            
-            const words = d.text.toLowerCase().replace(/[^\w\sà-ú]/g, ' ').split(/\s+/).filter(w => w.length > 3 && !stopWords.has(w));
-            new Set(words).forEach(w => freq[w] = (freq[w] || 0) + 1);
-        });
-
-        // Combine existing tags and recurring words
-        const suggestions = Object.entries(freq)
-            .filter(([word, count]) => count > 1)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 20);
-
-        suggestions.forEach(([word, count]) => {
-            if (allSuggestions.some(d => d.toLowerCase() === word)) return;
-            
-            const badge = document.createElement('div');
-            const isTag = tagsInUse.has(word);
-            badge.className = `tag-badge ${isTag ? 'active' : 'suggestion'}`;
-            badge.innerHTML = `${word} <span class="count">${count}</span>`;
-            badge.onclick = () => addActiveTag(word);
             container.appendChild(badge);
         });
     }
@@ -314,7 +282,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     };
                     setTimeout(() => {
                         if (updateStatus.textContent === "Verificando novos portais...") {
-                            updateStatus.textContent = "Você já está na versão v2.403.";
+                            updateStatus.textContent = "Você já está na versão v2.404.";
                         }
                     }, 2000);
                 }

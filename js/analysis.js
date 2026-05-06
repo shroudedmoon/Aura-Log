@@ -101,6 +101,33 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             listContainer.appendChild(card);
         });
+    }    async function renderRealtimeSuggestions() {
+        const container = document.getElementById('realtime-tags');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        const defaults = ['Lúcido', 'Pesadelo', 'Recorrente'];
+        const pinnedTags = await window.db.getSetting('pinnedTags') || [];
+        
+        // Get all unique tags ever used
+        const dreams = await window.db.getAllDreams();
+        const usedTags = new Set();
+        dreams.forEach(d => {
+            if (d.tags) d.tags.forEach(t => usedTags.add(t));
+        });
+
+        const allSuggestions = Array.from(new Set([...defaults, ...pinnedTags, ...usedTags]));
+
+        allSuggestions.forEach(tag => {
+            const badge = document.createElement('div');
+            const isDefault = defaults.includes(tag);
+            const isPinned = pinnedTags.includes(tag);
+            badge.className = `tag-badge ${isDefault || isPinned ? 'active' : ''}`;
+            badge.textContent = tag;
+            badge.onclick = () => addActiveTag(tag);
+            container.appendChild(badge);
+        });
     }
 
     async function renderPatterns(dreams) {
@@ -113,29 +140,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const pinnedTags = await window.db.getSetting('pinnedTags') || [];
         const pinnedSet = new Set(pinnedTags.map(t => t.toLowerCase()));
 
-        const stopWords = new Set([
-            'o','a','e','um','uma','de','do','da','em','no','na','que','eu','foi','com','mas','não','para','por','se','os','as','dos','das','nos','nas','meu','minha','meus','minhas',
-            'estava','estou','tinha','tenho','quando','algo','ainda','muito','mais','também','sobre','pelo','pela','isso','esta','este','esse','essa','tudo','nada','onde','como','cada',
-            'então','depois','antes','agora','sempre','nunca','num','numa','pelos','pelas','você','ele','ela','nós','eles','elas',
-            'pode','pelo','pela','pelas','pelos','estão','esteve','estavam','ter','tinha','tinham','fazer','fui','ser','era','eram','quem','qual','quais','algum','alguma','alguns','algumas',
-            'está','tendo','acabo','outras','outros','enquanto','disso','daqui','ali','lá','assim','bem','tão','apenas','só',
-            'dentro','dele','dela','tipo','parece','coisa','coisas','disse','falar','falou','gente','pessoa','pessoas','muitos','muitas','fui','vai','vou'
-        ]);
-        
-        const wordFreq = {};
-        dreams.forEach((dream) => {
-            const words = dream.text.toLowerCase()
-                .replace(/[^\w\sà-ú]/g, ' ')
-                .split(/\s+/)
-                .filter(w => w.length > 3 && !stopWords.has(w));
-            
-            new Set(words).forEach(word => {
-                wordFreq[word] = (wordFreq[word] || 0) + 1;
-            });
+        // Count only explicit tags
+        const tagFreq = {};
+        dreams.forEach(d => {
+            if (d.tags) {
+                d.tags.forEach(t => {
+                    const tag = t.toLowerCase();
+                    tagFreq[tag] = (tagFreq[tag] || 0) + 1;
+                });
+            }
         });
 
-        const recurring = Object.entries(wordFreq)
-            .filter(([word, count]) => count > 1)
+        const recurring = Object.entries(tagFreq)
             .sort((a, b) => b[1] - a[1])
             .slice(0, 30);
 
@@ -179,44 +195,30 @@ document.addEventListener('DOMContentLoaded', () => {
         svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
         graphContainer.appendChild(svg);
 
-        // Extract top terms
-        const stopWords = new Set(['o','a','e','um','uma','de','do','da','em','no','na','que','eu','foi','com','mas','não','para','por','se','os','as','dos','das','nos','nas','meu','minha','meus','minhas']);
-        const wordFreq = {};
+        // Extract tags only
+        const tagFreq = {};
         const connections = [];
 
         dreams.forEach(dream => {
-            const words = dream.text.toLowerCase()
-                .replace(/[^\w\sà-ú]/g, ' ')
-                .split(/\s+/)
-                .filter(w => w.length > 4 && !stopWords.has(w));
+            if (!dream.tags || dream.tags.length < 1) return;
             
-            const uniqueWords = Array.from(new Set(words));
-            uniqueWords.forEach(w => wordFreq[w] = (wordFreq[w] || 0) + 1);
+            const tags = dream.tags.map(t => t.toLowerCase());
+            tags.forEach(t => tagFreq[t] = (tagFreq[t] || 0) + 1);
             
-            // Create links between words in the same dream
-            for(let i=0; i<uniqueWords.length; i++) {
-                for(let j=i+1; j<uniqueWords.length; j++) {
-                    connections.push([uniqueWords[i], uniqueWords[j]]);
+            // Create links between tags in the same dream
+            for(let i=0; i<tags.length; i++) {
+                for(let j=i+1; j<tags.length; j++) {
+                    connections.push([tags[i], tags[j]]);
                 }
             }
         });
 
-        // Prioritize pinned tags and filter recurring words
-        const pinnedTags = await window.db.getSetting('pinnedTags') || [];
-        const pinnedSet = new Set(pinnedTags.map(t => t.toLowerCase()));
-
-        // Filter wordFreq: keep pinned tags OR very frequent words (>2)
-        const relevantTerms = Object.entries(wordFreq)
-            .filter(([word, count]) => pinnedSet.has(word) || count > 2)
-            .sort((a, b) => {
-                // Pinned always come first
-                if (pinnedSet.has(a[0]) && !pinnedSet.has(b[0])) return -1;
-                if (!pinnedSet.has(a[0]) && pinnedSet.has(b[0])) return 1;
-                return b[1] - a[1];
-            })
+        // Filter and sort tags
+        const relevantTags = Object.entries(tagFreq)
+            .sort((a, b) => b[1] - a[1])
             .slice(0, 15);
 
-        const nodes = relevantTerms.map(([word, count], i) => ({
+        const nodes = relevantTags.map(([word, count], i) => ({
             id: word,
             radius: 10 + (count * 3),
             x: width / 2 + Math.cos(i * 0.8) * (width * 0.3),
