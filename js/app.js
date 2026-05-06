@@ -282,7 +282,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     };
                     setTimeout(() => {
                         if (updateStatus.textContent === "Verificando novos portais...") {
-                            updateStatus.textContent = "Você já está na versão v2.602.";
+                            updateStatus.textContent = "Você já está na versão v2.603.";
                         }
                     }, 2000);
                 }

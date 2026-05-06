@@ -215,10 +215,9 @@ document.addEventListener('DOMContentLoaded', () => {
             
             badge.querySelector('.tag-text').onclick = (e) => {
                 e.stopPropagation();
-                if (filterInput) {
-                    filterInput.value = word;
-                    window.refreshAnalysis();
-                }
+                activeFilterTags.clear();
+                activeFilterTags.add(word);
+                window.refreshAnalysis();
             };
 
             badge.querySelector('.pin-icon').onclick = (e) => {
