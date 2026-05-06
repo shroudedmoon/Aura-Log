@@ -44,10 +44,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
         window.currentDreamsList = savedDreams;
         
+        const clearBtn = document.getElementById('clear-filters-btn');
+        if (clearBtn) {
+            clearBtn.style.display = (textQuery || activeFilterTags.size > 0) ? 'block' : 'none';
+        }
+
         if (listContainer) renderList(savedDreams);
         if (graphContainer) await renderConstellation(savedDreams);
         renderPatterns(savedDreams);
     };
+
+    const clearBtn = document.getElementById('clear-filters-btn');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            if (filterInput) filterInput.value = '';
+            if (filterDateStart) filterDateStart.value = '';
+            if (filterDateEnd) filterDateEnd.value = '';
+            activeFilterTags.clear();
+            filterTags.forEach(b => b.classList.remove('active'));
+            window.refreshAnalysis();
+        });
+    }
 
     if (filterInput) filterInput.addEventListener('input', window.refreshAnalysis);
     if (filterDateStart) filterDateStart.addEventListener('change', window.refreshAnalysis);
@@ -264,12 +281,13 @@ document.addEventListener('DOMContentLoaded', () => {
         radialGrad.append("stop").attr("offset", "0%").attr("stop-color", "var(--cyan)").attr("stop-opacity", 0.9);
         radialGrad.append("stop").attr("offset", "100%").attr("stop-color", "var(--primary)").attr("stop-opacity", 0.2);
 
-        // Simulation
+        // Simulation with improved stability
         const simulation = d3.forceSimulation(nodes)
             .force("link", d3.forceLink(links).id(d => d.id).distance(150).strength(0.1))
-            .force("charge", d3.forceManyBody().strength(-300))
+            .force("charge", d3.forceManyBody().strength(-200)) // Reduced repulsion
             .force("center", d3.forceCenter(width / 2, height / 2))
-            .force("collision", d3.forceCollide().radius(d => d.radius + 30));
+            .force("collision", d3.forceCollide().radius(d => d.radius + 20))
+            .alphaDecay(0.05); // Faster stabilization
 
         // Lines
         const linkLines = g.append("g")
