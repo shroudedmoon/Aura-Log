@@ -101,16 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
             container.appendChild(btn);
         });
     }
-            if (activeFilterTags.has(tag)) {
-                activeFilterTags.delete(tag);
-                btn.classList.remove('active');
-            } else {
-                activeFilterTags.add(tag);
-                btn.classList.add('active');
-            }
-            window.refreshAnalysis();
-        });
-    });
+    }
 
     window.deleteDream = async (id) => {
         if (confirm("Tem certeza que deseja excluir este sonho?")) {
