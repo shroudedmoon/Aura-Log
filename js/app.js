@@ -129,8 +129,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function addActiveTag(tag) {
-        if (!activeTags.includes(tag)) {
-            activeTags.push(tag);
+        const normalized = tag.trim().toLowerCase();
+        if (normalized && !activeTags.includes(normalized)) {
+            activeTags.push(normalized);
             renderActiveTags();
             triggerAutoSave();
         }
@@ -149,6 +150,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         activeTags.forEach(tag => {
             const badge = document.createElement('div');
             badge.className = 'tag-badge active-removable';
+            badge.style.textTransform = 'capitalize';
             badge.textContent = tag;
             badge.onclick = () => removeActiveTag(tag);
             container.appendChild(badge);
@@ -282,7 +284,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     };
                     setTimeout(() => {
                         if (updateStatus.textContent === "Verificando novos portais...") {
-                            updateStatus.textContent = "Você já está na versão v2.603.";
+                            updateStatus.textContent = "Você já está na versão v2.7.";
                         }
                     }, 2000);
                 }

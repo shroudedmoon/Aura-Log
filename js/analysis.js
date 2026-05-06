@@ -36,9 +36,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         if (activeFilterTags.size > 0) {
+            const lowerFilterTags = Array.from(activeFilterTags).map(t => t.toLowerCase());
             savedDreams = savedDreams.filter(d => {
                 if (!d.tags) return false;
-                return Array.from(activeFilterTags).every(tag => d.tags.includes(tag));
+                const lowerDreamTags = d.tags.map(t => t.toLowerCase());
+                return lowerFilterTags.every(tag => lowerDreamTags.includes(tag));
             });
         }
 
@@ -82,13 +84,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const dreams = await window.db.getAllDreams();
         const allTags = new Set();
         dreams.forEach(d => {
-            if (d.tags) d.tags.forEach(t => allTags.add(t));
+            if (d.tags) d.tags.forEach(t => allTags.add(t.toLowerCase()));
         });
 
         container.innerHTML = '';
         Array.from(allTags).sort().forEach(tag => {
             const btn = document.createElement('button');
             btn.className = `tag-btn filter-tag ${activeFilterTags.has(tag) ? 'active' : ''}`;
+            btn.style.textTransform = 'capitalize';
             btn.textContent = tag;
             btn.onclick = () => {
                 if (activeFilterTags.has(tag)) {
@@ -337,6 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .attr("text-anchor", "middle")
             .attr("fill", "white")
             .attr("font-size", "12px")
+            .style("text-transform", "capitalize")
             .text(d => d.id);
 
         nodeGroups.on("click", (event, d) => {
