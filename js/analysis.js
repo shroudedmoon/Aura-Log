@@ -44,35 +44,63 @@ document.addEventListener('DOMContentLoaded', () => {
 
         window.currentDreamsList = savedDreams;
         
-        const clearBtn = document.getElementById('clear-filters-btn');
-        if (clearBtn) {
-            clearBtn.style.display = (textQuery || activeFilterTags.size > 0) ? 'block' : 'none';
-        }
+        const clearBtnA = document.getElementById('clear-filters-btn');
+        const clearBtnG = document.getElementById('global-clear-filters');
+        const isFiltered = textQuery || activeFilterTags.size > 0 || startDate || endDate;
+        
+        if (clearBtnA) clearBtnA.style.display = isFiltered ? 'block' : 'none';
+        if (clearBtnG) clearBtnG.style.display = isFiltered ? 'block' : 'none';
 
         if (listContainer) renderList(savedDreams);
         if (graphContainer) await renderConstellation(savedDreams);
         renderPatterns(savedDreams);
+        renderFilterTags();
     };
 
-    const clearBtn = document.getElementById('clear-filters-btn');
-    if (clearBtn) {
-        clearBtn.addEventListener('click', () => {
-            if (filterInput) filterInput.value = '';
-            if (filterDateStart) filterDateStart.value = '';
-            if (filterDateEnd) filterDateEnd.value = '';
-            activeFilterTags.clear();
-            filterTags.forEach(b => b.classList.remove('active'));
-            window.refreshAnalysis();
-        });
-    }
+    const globalClearBtn = document.getElementById('global-clear-filters');
+    const analysisClearBtn = document.getElementById('clear-filters-btn');
+    
+    const clearAll = () => {
+        if (filterInput) filterInput.value = '';
+        if (filterDateStart) filterDateStart.value = '';
+        if (filterDateEnd) filterDateEnd.value = '';
+        activeFilterTags.clear();
+        window.refreshAnalysis();
+    };
+
+    if (globalClearBtn) globalClearBtn.addEventListener('click', clearAll);
+    if (analysisClearBtn) analysisClearBtn.addEventListener('click', clearAll);
 
     if (filterInput) filterInput.addEventListener('input', window.refreshAnalysis);
     if (filterDateStart) filterDateStart.addEventListener('change', window.refreshAnalysis);
     if (filterDateEnd) filterDateEnd.addEventListener('change', window.refreshAnalysis);
 
-    filterTags.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const tag = btn.getAttribute('data-tag');
+    async function renderFilterTags() {
+        const container = document.getElementById('filter-tags-container');
+        if (!container) return;
+        
+        const dreams = await window.db.getAllDreams();
+        const allTags = new Set();
+        dreams.forEach(d => {
+            if (d.tags) d.tags.forEach(t => allTags.add(t));
+        });
+
+        container.innerHTML = '';
+        Array.from(allTags).sort().forEach(tag => {
+            const btn = document.createElement('button');
+            btn.className = `tag-btn filter-tag ${activeFilterTags.has(tag) ? 'active' : ''}`;
+            btn.textContent = tag;
+            btn.onclick = () => {
+                if (activeFilterTags.has(tag)) {
+                    activeFilterTags.delete(tag);
+                } else {
+                    activeFilterTags.add(tag);
+                }
+                window.refreshAnalysis();
+            };
+            container.appendChild(btn);
+        });
+    }
             if (activeFilterTags.has(tag)) {
                 activeFilterTags.delete(tag);
                 btn.classList.remove('active');
@@ -323,10 +351,9 @@ document.addEventListener('DOMContentLoaded', () => {
             .text(d => d.id);
 
         nodeGroups.on("click", (event, d) => {
-            if (filterInput) {
-                filterInput.value = d.id;
-                window.refreshAnalysis();
-            }
+            activeFilterTags.clear();
+            activeFilterTags.add(d.id);
+            window.refreshAnalysis();
         });
 
         simulation.on("tick", () => {

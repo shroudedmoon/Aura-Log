@@ -82,17 +82,16 @@
                 <header class="view-header">
                     <h1>Histórico de Sonhos</h1>
                 </header>
-                <div class="filters-panel" style="background: var(--surface-light); padding: 1rem; border-radius: 12px; margin-bottom: 1rem;">
-                    <input type="text" id="filter-text" class="date-input" placeholder="Buscar texto ou título..." style="margin-bottom: 0.5rem;">
-                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
-                        <input type="date" id="filter-date-start" class="date-input" style="flex: 1;">
-                        <input type="date" id="filter-date-end" class="date-input" style="flex: 1;">
+                <div class="filters-panel">
+                    <input type="text" id="filter-text" placeholder="Buscar no texto do sonho...">
+                    <div class="filter-row">
+                        <input type="date" id="filter-date-start">
+                        <input type="date" id="filter-date-end">
                     </div>
-                    <div class="quick-tags" id="history-filter-tags" style="justify-content: flex-start;">
-                        <button class="tag-btn filter-tag" data-tag="Lúcido">✨ Lúcido</button>
-                        <button class="tag-btn filter-tag" data-tag="Pesadelo">🌑 Pesadelo</button>
-                        <button class="tag-btn filter-tag" data-tag="Recorrente">🔄 Recorrente</button>
+                    <div id="filter-tags-container" class="tag-cloud" style="margin-top: 0.5rem;">
+                        <!-- All tags will be rendered here -->
                     </div>
+                    <button id="global-clear-filters" class="secondary-btn" style="width: 100%; margin-top: 0.5rem; border-color: var(--magenta); color: var(--magenta);">Limpar Tudo</button>
                 </div>
                 <div id="dreams-list" class="dreams-list"></div>
             </div>
@@ -153,7 +152,7 @@
                     <div class="setting-group" style="margin-bottom: 1.5rem;">
                         <label>Versão e Atualizações</label>
                         <div style="display: flex; align-items: center; justify-content: space-between;">
-                            <span style="font-size: 0.9rem;" id="version-text">v2.502</span>
+                            <span style="font-size: 0.9rem;" id="version-text">v2.6</span>
                             <button id="update-btn" class="secondary-btn" style="padding: 0.5rem 1rem; font-size: 0.8rem; flex: none; width: auto;">Verificar Atualizações</button>
                         </div>
                         <p id="update-status" class="status-msg" style="margin-top: 0.5rem;"></p>
