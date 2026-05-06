@@ -27,7 +27,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const prompt = `Leia a rede de sonhos abaixo. Atue como um analista de sincromisticismo.
 Não interprete um sonho isolado de forma psicopedagógica, mas sim as pontes, os padrões simbólicos ocultos, e as rimas de significado entre eles.
-Levante 1 a 3 questões poéticas sobre como essas sincronicidades se relacionam, com foco em arquétipos ou sincromisticismo. Responda em Português do Brasil.
+Levante 1 a 3 questões poéticas sobre como essas sincronicidades se relacionam, com foco em arquétipos ou sincromisticismo.
+
+Ao final, crie uma seção chamada "Dicionário de Sincronicidades" listando termos ou símbolos que aparecem com frequência nos relatos, ignorando palavras de ligação comuns e focando em núcleos de significado.
+
+Responda em Português do Brasil usando Markdown.
 
 REDE DE SONHOS:
 ${historyText}`;

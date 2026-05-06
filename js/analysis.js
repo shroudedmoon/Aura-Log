@@ -118,7 +118,8 @@ document.addEventListener('DOMContentLoaded', () => {
             'estava','estou','tinha','tenho','quando','algo','ainda','muito','mais','também','sobre','pelo','pela','isso','esta','este','esse','essa','tudo','nada','onde','como','cada',
             'então','depois','antes','agora','sempre','nunca','num','numa','pelos','pelas','você','ele','ela','nós','eles','elas',
             'pode','pelo','pela','pelas','pelos','estão','esteve','estavam','ter','tinha','tinham','fazer','fui','ser','era','eram','quem','qual','quais','algum','alguma','alguns','algumas',
-            'está','tendo','acabo','outras','outros','enquanto','disso','daqui','ali','lá','assim','bem','tão','apenas','só'
+            'está','tendo','acabo','outras','outros','enquanto','disso','daqui','ali','lá','assim','bem','tão','apenas','só',
+            'dentro','dele','dela','tipo','parece','coisa','coisas','disse','falar','falou','gente','pessoa','pessoas','muitos','muitas','fui','vai','vou'
         ]);
         
         const wordFreq = {};
@@ -200,11 +201,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        const topWords = Object.entries(wordFreq)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 12);
+        // Prioritize pinned tags and filter recurring words
+        const pinnedTags = await window.db.getSetting('pinnedTags') || [];
+        const pinnedSet = new Set(pinnedTags.map(t => t.toLowerCase()));
 
-        const nodes = topWords.map(([word, count], i) => ({
+        // Filter wordFreq: keep pinned tags OR very frequent words (>2)
+        const relevantTerms = Object.entries(wordFreq)
+            .filter(([word, count]) => pinnedSet.has(word) || count > 2)
+            .sort((a, b) => {
+                // Pinned always come first
+                if (pinnedSet.has(a[0]) && !pinnedSet.has(b[0])) return -1;
+                if (!pinnedSet.has(a[0]) && pinnedSet.has(b[0])) return 1;
+                return b[1] - a[1];
+            })
+            .slice(0, 15);
+
+        const nodes = relevantTerms.map(([word, count], i) => ({
             id: word,
             radius: 10 + (count * 3),
             x: width / 2 + Math.cos(i * 0.8) * (width * 0.3),

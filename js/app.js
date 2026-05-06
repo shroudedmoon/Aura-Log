@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const dateInput = document.getElementById('dream-date');
     
     let currentDraftId = 'draft'; 
+    let activeTags = [];
 
     // Initialize date with current time
     function toLocalISOString(date) {
@@ -85,7 +86,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             dreamInput.value = dream.text;
             if(dreamTitle) dreamTitle.value = dream.title || '';
             dateInput.value = toLocalISOString(new Date(dream.date));
-            saveStatus.textContent = "Editando...";
+            activeTags = dream.tags || [];
+            renderActiveTags();
             // Switch view
             document.querySelector('.nav-btn[data-target="view-entry"]').click();
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -102,7 +104,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 id: currentDraftId,
                 title: dreamTitle ? dreamTitle.value : '',
                 text: dreamInput.value,
-                tags: getTagsFromText(dreamInput.value),
+                tags: activeTags,
                 date: new Date(dateInput.value).toISOString(),
                 isDraft: currentDraftId === 'draft'
             });
@@ -113,12 +115,54 @@ document.addEventListener('DOMContentLoaded', async () => {
     dreamInput.addEventListener('input', triggerAutoSave);
     if(dreamTitle) dreamTitle.addEventListener('input', triggerAutoSave);
 
+    const tagQuickAdd = document.getElementById('tag-quick-add');
+    if (tagQuickAdd) {
+        tagQuickAdd.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const tag = tagQuickAdd.value.trim().replace(/^#/, '');
+                if (tag) {
+                    addActiveTag(tag);
+                    tagQuickAdd.value = '';
+                }
+            }
+        });
+    }
+
+    function addActiveTag(tag) {
+        if (!activeTags.includes(tag)) {
+            activeTags.push(tag);
+            renderActiveTags();
+            triggerAutoSave();
+        }
+    }
+
+    function removeActiveTag(tag) {
+        activeTags = activeTags.filter(t => t !== tag);
+        renderActiveTags();
+        triggerAutoSave();
+    }
+
+    function renderActiveTags() {
+        const container = document.getElementById('active-tags-bubbles');
+        if (!container) return;
+        container.innerHTML = '';
+        activeTags.forEach(tag => {
+            const badge = document.createElement('div');
+            badge.className = 'tag-badge active-removable';
+            badge.textContent = tag;
+            badge.onclick = () => removeActiveTag(tag);
+            container.appendChild(badge);
+        });
+    }
+
     // Load draft if exists
     if (currentDraftId === 'draft') {
         const draft = await window.db.getDream('draft');
         if (draft) {
             if (draft.text) dreamInput.value = draft.text;
             if (dreamTitle && draft.title) dreamTitle.value = draft.title;
+            activeTags = draft.tags || [];
+            renderActiveTags();
         }
     }
 
@@ -134,7 +178,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             id: idToSave,
             title: dreamTitle ? dreamTitle.value.trim() : '',
             text: text,
-            tags: getTagsFromText(text),
+            tags: activeTags,
             date: new Date(dateInput.value).toISOString(),
             isDraft: false
         });
@@ -153,6 +197,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         dreamInput.value = '';
         if(dreamTitle) dreamTitle.value = '';
+        activeTags = [];
+        renderActiveTags();
         currentDraftId = 'draft';
         dateInput.value = toLocalISOString(new Date());
         saveStatus.textContent = "Salvo no Diário!";
@@ -179,11 +225,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const badge = document.createElement('div');
             badge.className = 'tag-badge active';
             badge.textContent = tag;
-            badge.onclick = () => {
-                dreamInput.value += ` #${tag} `;
-                dreamInput.focus();
-                dreamInput.dispatchEvent(new Event('input'));
-            };
+            badge.onclick = () => addActiveTag(tag);
             container.appendChild(badge);
         });
 
@@ -196,7 +238,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             'estava','estou','tinha','tenho','quando','algo','ainda','muito','mais','também','sobre','pelo','pela','isso','esta','este','esse','essa','tudo','nada','onde','como','cada',
             'então','depois','antes','agora','sempre','nunca','num','numa','pelos','pelas','você','ele','ela','nós','eles','elas',
             'pode','pelo','pela','pelas','pelos','estão','esteve','estavam','ter','tinha','tinham','fazer','fui','ser','era','eram','quem','qual','quais','algum','alguma','alguns','algumas',
-            'está','tendo','acabo','outras','outros','enquanto','disso','daqui','ali','lá','assim','bem','tão','apenas','só'
+            'está','tendo','acabo','outras','outros','enquanto','disso','daqui','ali','lá','assim','bem','tão','apenas','só',
+            'dentro','dele','dela','tipo','parece','coisa','coisas','disse','falar','falou','gente','pessoa','pessoas'
         ]);
         
         const freq = {};
@@ -221,11 +264,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const isTag = tagsInUse.has(word);
             badge.className = `tag-badge ${isTag ? 'active' : 'suggestion'}`;
             badge.innerHTML = `${word} <span class="count">${count}</span>`;
-            badge.onclick = () => {
-                dreamInput.value += ` #${word} `;
-                dreamInput.focus();
-                dreamInput.dispatchEvent(new Event('input'));
-            };
+            badge.onclick = () => addActiveTag(word);
             container.appendChild(badge);
         });
     }
@@ -275,7 +314,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     };
                     setTimeout(() => {
                         if (updateStatus.textContent === "Verificando novos portais...") {
-                            updateStatus.textContent = "Você já está na versão v2.401.";
+                            updateStatus.textContent = "Você já está na versão v2.402.";
                         }
                     }, 2000);
                 }
