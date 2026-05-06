@@ -74,6 +74,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    const expandBtn = document.getElementById('expand-graph-btn');
+    if (expandBtn) {
+        expandBtn.addEventListener('click', () => {
+            graphContainer.classList.toggle('expanded');
+            if (graphContainer.classList.contains('expanded')) {
+                expandBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H2v6M16 21h6v-6M12 12l-9 9M21 3l-9 9"/></svg>';
+            } else {
+                expandBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>';
+            }
+            window.refreshAnalysis();
+        });
+    }
+
     function renderList(dreams) {
         if (!listContainer) return;
         listContainer.innerHTML = '';
@@ -183,114 +196,147 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function renderConstellation(dreams) {
-        if (!graphContainer) return;
-        graphContainer.innerHTML = '';
+        const svgWrapper = document.getElementById('constellation-svg-wrapper');
+        if (!svgWrapper) return;
+        svgWrapper.innerHTML = '';
         
-        const width = graphContainer.clientWidth;
-        const height = graphContainer.clientHeight || 400;
+        const width = svgWrapper.clientWidth;
+        const height = svgWrapper.clientHeight || 400;
         
-        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        svg.setAttribute("width", "100%");
-        svg.setAttribute("height", "100%");
-        svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
-        graphContainer.appendChild(svg);
-
-        // Extract tags only
+        // Extract tags and connections
         const tagFreq = {};
-        const connections = [];
+        const linkData = [];
+        const usedTags = new Set();
 
         dreams.forEach(dream => {
             if (!dream.tags || dream.tags.length < 1) return;
-            
             const tags = dream.tags.map(t => t.toLowerCase());
-            tags.forEach(t => tagFreq[t] = (tagFreq[t] || 0) + 1);
+            tags.forEach(t => {
+                tagFreq[t] = (tagFreq[t] || 0) + 1;
+                usedTags.add(t);
+            });
             
-            // Create links between tags in the same dream
             for(let i=0; i<tags.length; i++) {
                 for(let j=i+1; j<tags.length; j++) {
-                    connections.push([tags[i], tags[j]]);
+                    linkData.push({ source: tags[i], target: tags[j] });
                 }
             }
         });
 
-        // Filter and sort tags
-        const relevantTags = Object.entries(tagFreq)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 15);
+        const nodes = Array.from(usedTags).map(tag => ({
+            id: tag,
+            count: tagFreq[tag],
+            radius: 8 + Math.sqrt(tagFreq[tag]) * 6
+        })).sort((a,b) => b.count - a.count).slice(0, 30);
 
-        const nodes = relevantTags.map(([word, count], i) => ({
-            id: word,
-            radius: 10 + (count * 3),
-            x: width / 2 + Math.cos(i * 0.8) * (width * 0.3),
-            y: height / 2 + Math.sin(i * 0.8) * (height * 0.3),
-            count: count
-        }));
+        const nodeIds = new Set(nodes.map(d => d.id));
+        const links = [];
+        const linkMap = new Map();
 
-        // Render Links
-        const topWordSet = new Set(nodes.map(n => n.id));
-        const filteredLinks = connections.filter(link => topWordSet.has(link[0]) && topWordSet.has(link[1]));
-        
-        // Count link strengths
-        const linkStrengths = {};
-        filteredLinks.forEach(link => {
-            const key = link.sort().join('|');
-            linkStrengths[key] = (linkStrengths[key] || 0) + 1;
-        });
-
-        Object.entries(linkStrengths).forEach(([key, strength]) => {
-            const [id1, id2] = key.split('|');
-            const n1 = nodes.find(n => n.id === id1);
-            const n2 = nodes.find(n => n.id === id2);
-            if (n1 && n2) {
-                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                line.setAttribute("x1", n1.x);
-                line.setAttribute("y1", n1.y);
-                line.setAttribute("x2", n2.x);
-                line.setAttribute("y2", n2.y);
-                line.setAttribute("class", "constellation-link");
-                line.setAttribute("stroke-width", Math.min(strength, 5));
-                svg.appendChild(line);
+        linkData.forEach(l => {
+            if (nodeIds.has(l.source) && nodeIds.has(l.target)) {
+                const key = [l.source, l.target].sort().join('|');
+                linkMap.set(key, (linkMap.get(key) || 0) + 1);
             }
         });
 
-        // Render Nodes
-        nodes.forEach(node => {
-            const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-            g.setAttribute("class", "constellation-node");
-            
-            const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            circle.setAttribute("cx", node.x);
-            circle.setAttribute("cy", node.y);
-            circle.setAttribute("r", node.radius);
-            circle.setAttribute("fill", "url(#grad1)");
-            circle.setAttribute("stroke", "var(--cyan)");
-            circle.setAttribute("stroke-width", "2");
-            
-            const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-            text.setAttribute("x", node.x);
-            text.setAttribute("y", node.y + node.radius + 15);
-            text.setAttribute("text-anchor", "middle");
-            text.setAttribute("fill", "white");
-            text.setAttribute("font-size", "12px");
-            text.textContent = node.id;
-
-            g.appendChild(circle);
-            g.appendChild(text);
-            g.onclick = () => {
-                if (filterInput) {
-                    filterInput.value = node.id;
-                    window.refreshAnalysis();
-                }
-            };
-            svg.appendChild(g);
+        linkMap.forEach((strength, key) => {
+            const [source, target] = key.split('|');
+            links.push({ source, target, strength });
         });
+
+        const svg = d3.select("#constellation-svg-wrapper")
+            .append("svg")
+            .attr("width", "100%")
+            .attr("height", "100%")
+            .attr("viewBox", [0, 0, width, height]);
+
+        // Add Zoom
+        const g = svg.append("g");
+        svg.call(d3.zoom()
+            .scaleExtent([0.1, 8])
+            .on("zoom", ({transform}) => g.attr("transform", transform)));
 
         // Gradient
-        const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
-        const grad = document.createElementNS("http://www.w3.org/2000/svg", "radialGradient");
-        grad.setAttribute("id", "grad1");
-        grad.innerHTML = `<stop offset="0%" style="stop-color:var(--primary); stop-opacity:0.8" /><stop offset="100%" style="stop-color:var(--surface-light); stop-opacity:0.3" />`;
-        defs.appendChild(grad);
-        svg.insertBefore(defs, svg.firstChild);
+        const defs = svg.append("defs");
+        const radialGrad = defs.append("radialGradient")
+            .attr("id", "star-grad");
+        radialGrad.append("stop").attr("offset", "0%").attr("stop-color", "var(--cyan)").attr("stop-opacity", 0.9);
+        radialGrad.append("stop").attr("offset", "100%").attr("stop-color", "var(--primary)").attr("stop-opacity", 0.2);
+
+        // Simulation
+        const simulation = d3.forceSimulation(nodes)
+            .force("link", d3.forceLink(links).id(d => d.id).distance(150).strength(0.1))
+            .force("charge", d3.forceManyBody().strength(-300))
+            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force("collision", d3.forceCollide().radius(d => d.radius + 30));
+
+        // Lines
+        const linkLines = g.append("g")
+            .attr("stroke-opacity", 0.4)
+            .selectAll("line")
+            .data(links)
+            .join("line")
+            .attr("class", "constellation-link")
+            .attr("stroke-width", d => Math.sqrt(d.strength) * 2);
+
+        // Nodes
+        const nodeGroups = g.append("g")
+            .selectAll("g")
+            .data(nodes)
+            .join("g")
+            .attr("class", "constellation-node star-pulse")
+            .call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended));
+
+        nodeGroups.append("circle")
+            .attr("r", d => d.radius)
+            .attr("fill", "url(#star-grad)")
+            .attr("stroke", "var(--cyan)")
+            .attr("stroke-width", 2);
+
+        nodeGroups.append("text")
+            .attr("dy", d => d.radius + 15)
+            .attr("text-anchor", "middle")
+            .attr("fill", "white")
+            .attr("font-size", "12px")
+            .text(d => d.id);
+
+        nodeGroups.on("click", (event, d) => {
+            if (filterInput) {
+                filterInput.value = d.id;
+                window.refreshAnalysis();
+            }
+        });
+
+        simulation.on("tick", () => {
+            linkLines
+                .attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
+
+            nodeGroups
+                .attr("transform", d => `translate(${d.x},${d.y})`);
+        });
+
+        function dragstarted(event) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            event.subject.fx = event.subject.x;
+            event.subject.fy = event.subject.y;
+        }
+
+        function dragged(event) {
+            event.subject.fx = event.x;
+            event.subject.fy = event.y;
+        }
+
+        function dragended(event) {
+            if (!event.active) simulation.alphaTarget(0);
+            event.subject.fx = null;
+            event.subject.fy = null;
+        }
     }
 });

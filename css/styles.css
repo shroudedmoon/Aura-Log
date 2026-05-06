@@ -458,6 +458,86 @@ input[type="text"]:focus, input[type="password"]:focus {
 }
 
 /* Markdown body inside insight */
+/* Interactive Constellation Styles */
+.rhyme-container {
+    position: relative;
+    overflow: hidden;
+    background: radial-gradient(circle at center, #0a0a1a 0%, #000 100%);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rhyme-container.expanded {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh !important;
+    z-index: 10000;
+    margin: 0;
+    border-radius: 0;
+}
+
+.graph-control-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 10;
+    background: rgba(0, 255, 255, 0.1);
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+    transition: all 0.3s;
+}
+
+.graph-control-btn:hover {
+    background: var(--cyan);
+    color: #000;
+    box-shadow: 0 0 15px var(--cyan);
+}
+
+.constellation-node circle {
+    cursor: grab;
+}
+
+.constellation-node circle:active {
+    cursor: grabbing;
+}
+
+.constellation-node text {
+    font-family: var(--font-heading);
+    font-weight: 300;
+    pointer-events: none;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+
+.constellation-link {
+    stroke: var(--primary);
+    stroke-opacity: 0.3;
+    transition: stroke-opacity 0.3s;
+}
+
+.constellation-link.active {
+    stroke-opacity: 0.8;
+    stroke: var(--cyan);
+}
+
+/* Star Pulsing Animation */
+@keyframes starPulse {
+    0% { filter: drop-shadow(0 0 2px var(--cyan)); opacity: 0.8; }
+    50% { filter: drop-shadow(0 0 10px var(--cyan)); opacity: 1; }
+    100% { filter: drop-shadow(0 0 2px var(--cyan)); opacity: 0.8; }
+}
+
+.star-pulse {
+    animation: starPulse 3s infinite ease-in-out;
+}
 .markdown-body p { margin-bottom: 0.5em; font-size: 0.95rem; line-height: 1.5; color: var(--text-primary); }
 .markdown-body ul { margin-left: 1.5em; margin-bottom: 0.5em; font-size: 0.95rem; }
 .markdown-body strong { color: var(--cyan); }
