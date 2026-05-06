@@ -101,7 +101,6 @@ document.addEventListener('DOMContentLoaded', () => {
             container.appendChild(btn);
         });
     }
-    }
 
     window.deleteDream = async (id) => {
         if (confirm("Tem certeza que deseja excluir este sonho?")) {
