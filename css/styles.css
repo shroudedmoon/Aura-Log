@@ -458,13 +458,7 @@ input[type="text"]:focus, input[type="password"]:focus {
 }
 
 /* Markdown body inside insight */
-/* Interactive Constellation Styles */
-.rhyme-container {
-    position: relative;
-    overflow: hidden;
-    background: radial-gradient(circle at center, #0a0a1a 0%, #000 100%);
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
+/* Interactive Constellation Styles (merged with .rhyme-container) */
 
 .rhyme-container.expanded {
     position: fixed;
@@ -727,12 +721,13 @@ input:checked + .slider:before {
 
 /* Rhyme Graph Container */
 .rhyme-container {
-    background: var(--surface);
+    background: radial-gradient(circle at center, #0a0a1a 0%, #000 100%);
     border-radius: 20px;
     border: 1px solid var(--border);
     position: relative;
     overflow: hidden;
     box-shadow: inset 0 0 40px rgba(0,0,0,0.5);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .constellation-node {
