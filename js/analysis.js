@@ -77,6 +77,25 @@ document.addEventListener('DOMContentLoaded', () => {
     if (filterDateStart) filterDateStart.addEventListener('change', window.refreshAnalysis);
     if (filterDateEnd) filterDateEnd.addEventListener('change', window.refreshAnalysis);
 
+    const toggleTagsBtn = document.getElementById('toggle-tags-btn');
+    const tagsContainer = document.getElementById('filter-tags-container');
+    const toggleTagsIcon = document.getElementById('toggle-tags-icon');
+    const toggleTagsText = document.getElementById('toggle-tags-text');
+
+    if (toggleTagsBtn && tagsContainer) {
+        toggleTagsBtn.addEventListener('click', () => {
+            if (tagsContainer.style.display === 'none') {
+                tagsContainer.style.display = 'flex'; // It uses flex as it has .tag-cloud
+                toggleTagsText.textContent = 'Ocultar Tags';
+                toggleTagsIcon.innerHTML = '<path d="M18 15l-6-6-6 6"/>';
+            } else {
+                tagsContainer.style.display = 'none';
+                toggleTagsText.textContent = 'Mostrar Tags';
+                toggleTagsIcon.innerHTML = '<path d="M6 9l6 6 6-6"/>';
+            }
+        });
+    }
+
     async function renderFilterTags() {
         const container = document.getElementById('filter-tags-container');
         if (!container) return;
