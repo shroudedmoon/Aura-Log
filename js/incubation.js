@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.db.getSetting('rcActive').then(isActive => {
         isRcActive = !!isActive;
         rcToggleBtn.textContent = isRcActive ? "Desativar" : "Ativar Alertas";
-        rcStatusText.textContent = isRcActive ? "Ativado (a cada 2h)" : "Desativado";
+        rcStatusText.textContent = isRcActive ? "Ativado (a cada 30 min)" : "Desativado";
     });
 
     // Setup Notification Loop
@@ -213,7 +213,7 @@ Responda APENAS com o JSON. Nenhuma palavra a mais, sem formatação markdown en
             const handlePermission = (perm) => {
                 if (perm === 'granted') {
                     isRcActive = true;
-                    rcStatusText.textContent = "Ativado (a cada 2h)";
+                    rcStatusText.textContent = "Ativado (a cada 30 min)";
                     rcToggleBtn.textContent = "Desativar";
                     rcToggleBtn.classList.replace('primary-btn', 'secondary-btn');
                     window.db.saveSetting('rcActive', true);
@@ -265,9 +265,9 @@ Responda APENAS com o JSON. Nenhuma palavra a mais, sem formatação markdown en
             return;
         }
 
-        const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
+        const THIRTY_MINUTES_MS = 30 * 60 * 1000;
         
-        if (Date.now() - lastRC >= TWO_HOURS_MS) {
+        if (Date.now() - lastRC >= THIRTY_MINUTES_MS) {
             const incubation = await window.db.getSetting('activeIncubation');
             let q;
             
