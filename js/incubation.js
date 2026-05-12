@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     const rcToggleBtn = document.getElementById('rc-toggle-btn');
     const rcStatusText = document.getElementById('rc-status-text');
+    const rcIntervalSlider = document.getElementById('rc-interval-slider');
+    const rcIntervalDisplay = document.getElementById('rc-interval-display');
 
     // Load active incubation state
     let activeIncubation = await window.db.getSetting('activeIncubation');
@@ -16,12 +18,33 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderIncubation(activeIncubation);
     }
 
+    // Load RC interval (default 30 min)
+    let rcIntervalMin = 30;
+    const savedInterval = await window.db.getSetting('rcInterval');
+    if (savedInterval && savedInterval >= 5 && savedInterval <= 60) {
+        rcIntervalMin = savedInterval;
+    }
+    if (rcIntervalSlider) rcIntervalSlider.value = rcIntervalMin;
+    if (rcIntervalDisplay) rcIntervalDisplay.textContent = rcIntervalMin + ' min';
+
+    // Slider change handler
+    if (rcIntervalSlider) {
+        rcIntervalSlider.addEventListener('input', () => {
+            rcIntervalMin = parseInt(rcIntervalSlider.value);
+            if (rcIntervalDisplay) rcIntervalDisplay.textContent = rcIntervalMin + ' min';
+            window.db.saveSetting('rcInterval', rcIntervalMin);
+            if (isRcActive) {
+                rcStatusText.textContent = 'Ativado (a cada ' + rcIntervalMin + ' min)';
+            }
+        });
+    }
+
     // Load RC state
     let isRcActive = false;
     window.db.getSetting('rcActive').then(isActive => {
         isRcActive = !!isActive;
         rcToggleBtn.textContent = isRcActive ? "Desativar" : "Ativar Alertas";
-        rcStatusText.textContent = isRcActive ? "Ativado (a cada 30 min)" : "Desativado";
+        rcStatusText.textContent = isRcActive ? 'Ativado (a cada ' + rcIntervalMin + ' min)' : "Desativado";
     });
 
     // Setup Notification Loop
@@ -213,7 +236,7 @@ Responda APENAS com o JSON. Nenhuma palavra a mais, sem formatação markdown en
             const handlePermission = (perm) => {
                 if (perm === 'granted') {
                     isRcActive = true;
-                    rcStatusText.textContent = "Ativado (a cada 30 min)";
+                    rcStatusText.textContent = 'Ativado (a cada ' + rcIntervalMin + ' min)';
                     rcToggleBtn.textContent = "Desativar";
                     rcToggleBtn.classList.replace('primary-btn', 'secondary-btn');
                     window.db.saveSetting('rcActive', true);
@@ -265,9 +288,10 @@ Responda APENAS com o JSON. Nenhuma palavra a mais, sem formatação markdown en
             return;
         }
 
-        const THIRTY_MINUTES_MS = 30 * 60 * 1000;
+        const savedInt = await window.db.getSetting('rcInterval');
+        const intervalMs = ((savedInt && savedInt >= 5 && savedInt <= 60) ? savedInt : 30) * 60 * 1000;
         
-        if (Date.now() - lastRC >= THIRTY_MINUTES_MS) {
+        if (Date.now() - lastRC >= intervalMs) {
             const incubation = await window.db.getSetting('activeIncubation');
             let q;
             
