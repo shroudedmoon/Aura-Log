@@ -1,4 +1,4 @@
-const CACHE_NAME = 'auralog-v2.81';
+const CACHE_NAME = 'auralog-v2.90';
 const ASSETS = [
     './',
     './index.html',
@@ -7,7 +7,8 @@ const ASSETS = [
     './js/db.js',
     './js/gemini.js',
     './js/analysis.js',
-    './js/incubation.js',
+    './js/dashboard.js',
+    './js/notifications.js',
     './js/sync.js',
     './manifest.json',
     './assets/icons/logo.png'

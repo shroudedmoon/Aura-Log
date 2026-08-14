@@ -50,8 +50,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById(target).classList.remove('hidden');
             document.getElementById(target).classList.add('active');
 
+            if (target === 'view-dashboard') {
+                if (window.refreshDashboard) window.refreshDashboard();
+            }
             if (target === 'view-analysis' || target === 'view-history') {
-                if(window.refreshAnalysis) window.refreshAnalysis();
+                if (window.refreshAnalysis) window.refreshAnalysis();
             }
             if (target === 'view-entry') {
                 renderRealtimeSuggestions();
@@ -209,6 +212,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const insightContainer = document.getElementById('insight-container');
         if (insightContainer) insightContainer.classList.add('hidden');
         renderRealtimeSuggestions(); // Update suggestions after save
+        if (window.refreshDashboard) window.refreshDashboard();
     });
 
     async function renderRealtimeSuggestions() {
